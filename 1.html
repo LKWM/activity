@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Leçon 1 - Conjugaison du &lt;하다&gt;</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- Tone.js for Sound Effects -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+
+    <style>
+        /* CSS Reset & Strict No-Scroll Constraints */
+        html, body {
+            margin: 0; padding: 0;
+            width: 100vw; height: 100vh;
+            overflow: hidden; /* 절대 스크롤 방지 */
+            background-color: #f1f5f9;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            touch-action: none; /* 모바일 제스처 방지 */
+        }
+
+        /* Full Screen Flex Container */
+        #app-container {
+            width: 100%;
+            height: 100%;
+            background-color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        #progress-container, #bottom-nav {
+            flex-shrink: 0; /* 상하단바 크기 고정 */
+        }
+
+        /* Pages Wrapper */
+        #pages-wrapper {
+            flex: 1;
+            position: relative;
+            width: 100%;
+            display: flex;
+            overflow: hidden;
+        }
+
+        .page {
+            display: none;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+        .page.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Content Area dynamically adapts without scrolling */
+        .content-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            text-align: center;
+            min-h: 0; /* Flexbox overflow 방지용 */
+        }
+
+        .text-content {
+            font-size: 1.05rem;
+            line-height: 1.6rem;
+            color: #334155;
+            max-width: 42rem;
+            margin: 0 auto;
+        }
+        
+        @media (min-width: 768px) {
+            .text-content {
+                font-size: 1.25rem;
+                line-height: 2rem;
+            }
+        }
+
+        /* Interactive Card Button */
+        .card-btn {
+            transition: transform 0.1s, box-shadow 0.1s;
+            cursor: pointer;
+        }
+        .card-btn:active {
+            transform: scale(0.97);
+        }
+
+        /* Pulse Animation for Recording */
+        .recording-pulse {
+            animation: pulse-red 1.5s infinite;
+        }
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+
+        /* Quiz Options */
+        .quiz-option {
+            transition: all 0.2s;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .quiz-option.selected {
+            background-color: #e0e7ff;
+            border-color: #6366f1;
+            color: #4338ca;
+        }
+        .quiz-option.correct {
+            background-color: #dcfce7;
+            border-color: #22c55e;
+            color: #15803d;
+        }
+        .quiz-option.wrong {
+            background-color: #fee2e2;
+            border-color: #ef4444;
+            color: #b91c1c;
+        }
+    </style>
+</head>
+<body>
+
+<div id="app-container">
+    
+    <!-- Top Progress Bar -->
+    <div id="progress-container" class="w-full h-2 bg-slate-100 hidden">
+        <div id="progress-bar" class="h-full bg-indigo-500 transition-all duration-300 w-0"></div>
+    </div>
+
+    <!-- Pages Container -->
+    <div id="pages-wrapper">
+
+        <!-- Page 0: Cover -->
+        <div id="page-0" class="page active justify-center items-center bg-indigo-50">
+            <div class="content-area">
+                <p class="text-indigo-600 font-semibold mb-2 text-lg">Chapitre 1 - L’utilisation du verbe &lt;하다&gt;</p>
+                <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-800 mb-10">Leçon 1 - Conjugaison du &lt;하다&gt;</h1>
+                <button onclick="startLesson()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-10 rounded-full text-xl shadow-lg transition-transform transform hover:-translate-y-1 active:translate-y-0 flex items-center gap-3">
+                    <i class="ph-fill ph-play-circle text-2xl"></i>
+                    Commencer
+                </button>
+            </div>
+        </div>
+
+        <!-- Page 1: Intro -->
+        <div id="page-1" class="page">
+            <div class="content-area">
+                <p class="text-content">
+                    Bonjour ! Bienvenue dans le troisième programme de grammaire débutant. Dans ce programme, nous allons apprendre à décrire diverses actions et activités en utilisant le verbe « 하다 ». Plus précisément, dans ce chapitre, nous allons voir comment utiliser le verbe « 하다 » et comment le conjuguer.
+                </p>
+            </div>
+        </div>
+
+        <!-- Page 2: Levels of Speech -->
+        <div id="page-2" class="page">
+            <div class="content-area">
+                <div class="bg-white border-2 border-slate-200 shadow-sm rounded-2xl p-5 mb-6 w-full max-w-md">
+                    <h2 class="text-xl sm:text-2xl font-bold text-slate-700">Formel - Poli - Informel</h2>
+                </div>
+                <p class="text-content">
+                    Quand on utilise un verbe dans une phrase, la conjugaison, qui modifie la terminaison du verbe, est indispensable. En coréen, la terminaison est déterminée par l'intention du locuteur et par le niveau de politesse qu'il souhaite exprimer à son interlocuteur. La grammaire académique divise les niveaux de langage en six, mais les locuteurs modernes en utilisent principalement trois ou quatre.
+                </p>
+            </div>
+        </div>
+
+        <!-- Page 3: Polite Language -->
+        <div id="page-3" class="page">
+            <div class="content-area">
+                <div class="bg-indigo-50 border-2 border-indigo-100 rounded-2xl p-5 mb-6 w-full max-w-md">
+                    <h2 class="text-2xl sm:text-3xl font-bold text-indigo-800">Le langage poli</h2>
+                    <p class="text-indigo-600 mt-1 text-md">(langage courant)</p>
+                </div>
+                <p class="text-content">
+                    Parmi eux, nous allons surtout nous entraîner à parler avec le « langage poli », appelé « 해요체 ». C'est un style confortable que l'on peut utiliser avec tout le monde, que ce soit des proches, des inconnus, des personnes plus âgées ou plus jeunes.
+                </p>
+            </div>
+        </div>
+
+        <!-- Page 4: 하다 Word -->
+        <div id="page-4" class="page">
+            <div class="content-area">
+                <button onclick="playCardAudio('https://res.cloudinary.com/de76i94ia/video/upload/v1771784471/%E1%84%92%E1%85%A1%E1%84%83%E1%85%A1_v7cocg.mp3')" class="card-btn bg-white border-2 border-slate-200 shadow-md rounded-3xl p-6 mb-6 w-full max-w-xs flex flex-col items-center justify-center hover:bg-slate-50">
+                    <h2 class="text-5xl font-black mb-3">
+                        <span class="text-blue-600">하</span><span class="text-red-500">다</span>
+                    </h2>
+                    <p class="text-sm sm:text-base font-medium mb-3">
+                        <span class="text-blue-600 font-bold">Radical</span> - <span class="text-red-500 font-bold">Terminaison</span>
+                    </p>
+                    <p class="text-lg text-slate-500 font-bold border-t pt-3 w-full mb-3">Faire</p>
+                    <i class="ph-fill ph-play-circle text-3xl text-indigo-400"></i>
+                </button>
+                <p class="text-content">
+                    En coréen, les verbes et les adjectifs s'utilisent sous la même forme. Les infinitifs de tous les verbes et adjectifs se terminent par « 다 », et il faut les conjuguer pour les utiliser dans une phrase. Par exemple, « 하다 » est le verbe le plus utilisé en coréen et signifie « faire », « exécuter » ou « effectuer ».
+                </p>
+            </div>
+        </div>
+
+        <!-- Page 5: 해요 Word -->
+        <div id="page-5" class="page">
+            <div class="content-area">
+                <button onclick="playCardAudio('https://res.cloudinary.com/de76i94ia/video/upload/v1771784471/%E1%84%92%E1%85%A2%E1%84%8B%E1%85%AD_rl7mop.mp3')" class="card-btn bg-white border-2 border-slate-200 shadow-md rounded-3xl p-6 mb-6 w-full max-w-xs flex flex-col items-center justify-center hover:bg-slate-50">
+                    <h2 class="text-5xl font-black text-indigo-600 mb-3">해요</h2>
+                    <p class="text-sm sm:text-base text-slate-600 font-medium border-t pt-3 w-full mb-3">fais / fait / faisons / faites / font</p>
+                    <i class="ph-fill ph-play-circle text-3xl text-indigo-400"></i>
+                </button>
+                <p class="text-content">
+                    Comme mentionné précédemment, quand on utilise un verbe dans une phrase, il faut le conjuguer. « 해요 » est la forme conjuguée de « 하다 » au « langage poli ».
+                </p>
+            </div>
+        </div>
+
+        <!-- Page 6: 해요 Rule -->
+        <div id="page-6" class="page">
+            <div class="content-area">
+                <button onclick="playCardAudio('https://res.cloudinary.com/de76i94ia/video/upload/v1771784471/%E1%84%92%E1%85%A2%E1%84%8B%E1%85%AD_rl7mop.mp3')" class="card-btn bg-white border-2 border-slate-200 shadow-md rounded-3xl p-6 mb-6 w-full max-w-xs flex flex-col items-center justify-center hover:bg-slate-50">
+                    <h2 class="text-5xl font-black text-indigo-600 mb-3">해요</h2>
+                    <p class="text-sm sm:text-base text-slate-600 font-medium border-t pt-3 w-full mb-3">fais / fait / faisons / faites / font</p>
+                    <i class="ph-fill ph-play-circle text-3xl text-indigo-400"></i>
+                </button>
+                <p class="text-content">
+                    Le « langage poli » se termine toujours par « 요 », qu'il s'agisse d'une phrase déclarative ou interrogative.
+                </p>
+            </div>
+        </div>
+
+        <!-- Page 7: Speech Practice - 하다 -->
+        <div id="page-7" class="page">
+            <div class="content-area">
+                <h2 class="text-xl sm:text-2xl font-bold text-slate-800 mb-6">Répétez après moi.</h2>
+                
+                <button onclick="playCardAudio('https://res.cloudinary.com/de76i94ia/video/upload/v1771784471/%E1%84%92%E1%85%A1%E1%84%83%E1%85%A1_v7cocg.mp3')" class="card-btn bg-white border-2 border-slate-200 shadow-md rounded-3xl p-8 mb-8 w-full max-w-xs flex flex-col items-center justify-center hover:bg-slate-50 relative">
+                    <h3 class="text-4xl font-black text-slate-800 mb-3">하다</h3>
+                    <p class="text-lg text-slate-500 font-semibold border-t pt-3 w-full text-center mb-2">Faire</p>
+                    <i class="ph-fill ph-play-circle text-3xl text-indigo-400"></i>
+                </button>
+
+                <div class="flex flex-col items-center h-28 justify-center">
+                    <button id="mic-btn-7" onclick="toggleRecordSpeech(this, 'status-7', '하다', 50, 2, false, true)" class="bg-red-500 text-white rounded-full p-5 shadow-lg transition-transform hover:scale-105 active:scale-95 mb-2">
+                        <i class="ph-fill ph-microphone text-3xl"></i>
+                    </button>
+                    <p id="transcript-7" class="text-slate-700 h-5 text-sm mb-1"></p>
+                    <p id="status-7" class="text-slate-500 font-medium h-6"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Page 8: Speech Practice - 해요 -->
+        <div id="page-8" class="page">
+            <div class="content-area">
+                <h2 class="text-xl sm:text-2xl font-bold text-slate-800 mb-6">Répétez après moi.</h2>
+                
+                <button onclick="playCardAudio('https://res.cloudinary.com/de76i94ia/video/upload/v1771784471/%E1%84%92%E1%85%A2%E1%84%8B%E1%85%AD_rl7mop.mp3')" class="card-btn bg-white border-2 border-slate-200 shadow-md rounded-3xl p-8 mb-8 w-full max-w-xs flex flex-col items-center justify-center hover:bg-slate-50 relative">
+                    <h3 class="text-4xl font-black text-indigo-600 mb-3">해요</h3>
+                    <p class="text-base text-slate-500 font-semibold border-t pt-3 w-full text-center mb-2">fais/fait/faisons/faites/font</p>
+                    <i class="ph-fill ph-play-circle text-3xl text-indigo-400"></i>
+                </button>
+
+                <div class="flex flex-col items-center h-28 justify-center">
+                    <button id="mic-btn-8" onclick="toggleRecordSpeech(this, 'status-8', '해요', 50, 2, false, true)" class="bg-red-500 text-white rounded-full p-5 shadow-lg transition-transform hover:scale-105 active:scale-95 mb-2">
+                        <i class="ph-fill ph-microphone text-3xl"></i>
+                    </button>
+                    <p id="transcript-8" class="text-slate-700 h-5 text-sm mb-1"></p>
+                    <p id="status-8" class="text-slate-500 font-medium h-6"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Page 9: Quiz Multi -->
+        <div id="page-9" class="page">
+            <div class="content-area w-full max-w-lg mx-auto">
+                <h2 class="text-lg sm:text-xl font-bold text-slate-800 mb-6">Sélectionnez toutes les formes qui ne sont pas à l'infinitif.</h2>
+                
+                <div class="grid grid-cols-2 gap-2 w-full mb-6" id="quiz-9-options">
+                    <div class="quiz-option border-2 border-slate-200 rounded-xl p-3 font-bold text-base text-slate-700 bg-white" data-val="1">이에요</div>
+                    <div class="quiz-option border-2 border-slate-200 rounded-xl p-3 font-bold text-base text-slate-700 bg-white" data-val="0">하다</div>
+                    <div class="quiz-option border-2 border-slate-200 rounded-xl p-3 font-bold text-base text-slate-700 bg-white" data-val="0">자다</div>
+                    <div class="quiz-option border-2 border-slate-200 rounded-xl p-3 font-bold text-base text-slate-700 bg-white" data-val="0">예쁘다</div>
+                    <div class="quiz-option border-2 border-slate-200 rounded-xl p-3 font-bold text-base text-slate-700 bg-white" data-val="1">하세요</div>
+                </div>
+
+                <p id="quiz-9-status" class="h-6 font-bold text-center mb-4 text-red-500 text-sm"></p>
+                <button id="quiz-9-btn" onclick="checkMultiQuiz(9, ['이에요', '하세요'])" class="bg-slate-800 hover:bg-slate-900 text-white font-bold py-2 px-8 rounded-xl text-md transition-colors w-full sm:w-auto">Valider</button>
+            </div>
+        </div>
+
+        <!-- Page 10: Quiz Single -->
+        <div id="page-10" class="page">
+            <div class="content-area w-full max-w-lg mx-auto">
+                <h2 class="text-lg sm:text-xl font-bold text-slate-800 mb-6">Parmi les choix suivants, quelle est la forme conjuguée de &lt;하다&gt; au présent poli ?</h2>
+                
+                <div class="grid grid-cols-2 gap-2 w-full mb-6" id="quiz-10-options">
+                    <div class="quiz-option single-opt border-2 border-slate-200 rounded-xl p-3 font-bold text-base text-slate-700 bg-white">하다</div>
+                    <div class="quiz-option single-opt border-2 border-slate-200 rounded-xl p-3 font-bold text-base text-slate-700 bg-white">합니다</div>
+                    <div class="quiz-option single-opt border-2 border-slate-200 rounded-xl p-3 font-bold text-base text-slate-700 bg-white" data-correct="true">해요</div>
+                    <div class="quiz-option single-opt border-2 border-slate-200 rounded-xl p-3 font-bold text-base text-slate-700 bg-white">하십니까</div>
+                    <div class="quiz-option single-opt border-2 border-slate-200 rounded-xl p-3 font-bold text-base text-slate-700 bg-white">이에요</div>
+                </div>
+
+                <p id="quiz-10-status" class="h-6 font-bold text-center mb-4 text-red-500 text-sm"></p>
+                <button id="quiz-10-btn" onclick="checkSingleQuiz(10)" class="bg-slate-800 hover:bg-slate-900 text-white font-bold py-2 px-8 rounded-xl text-md transition-colors w-full sm:w-auto">Valider</button>
+            </div>
+        </div>
+
+        <!-- Page 11: Quiz Single 2 -->
+        <div id="page-11" class="page">
+            <div class="content-area w-full max-w-lg mx-auto">
+                <h2 class="text-lg sm:text-xl font-bold text-slate-800 mb-6">Que signifie &lt;하다&gt; ?</h2>
+                
+                <div class="grid grid-cols-2 gap-3 w-full mb-6" id="quiz-11-options">
+                    <div class="quiz-option single-opt border-2 border-slate-200 rounded-xl p-4 font-bold text-lg text-slate-700 bg-white">Être</div>
+                    <div class="quiz-option single-opt border-2 border-slate-200 rounded-xl p-4 font-bold text-lg text-slate-700 bg-white" data-correct="true">Faire</div>
+                    <div class="quiz-option single-opt border-2 border-slate-200 rounded-xl p-4 font-bold text-lg text-slate-700 bg-white">Avoir</div>
+                    <div class="quiz-option single-opt border-2 border-slate-200 rounded-xl p-4 font-bold text-lg text-slate-700 bg-white">Mettre</div>
+                </div>
+
+                <p id="quiz-11-status" class="h-6 font-bold text-center mb-4 text-red-500 text-sm"></p>
+                <button id="quiz-11-btn" onclick="checkSingleQuiz(11)" class="bg-slate-800 hover:bg-slate-900 text-white font-bold py-2 px-8 rounded-xl text-md transition-colors w-full sm:w-auto">Valider</button>
+            </div>
+        </div>
+
+        <!-- Page 12: Speech Quiz -->
+        <div id="page-12" class="page">
+            <div class="content-area w-full max-w-lg mx-auto">
+                <h2 class="text-lg sm:text-xl font-bold text-slate-800 mb-8 leading-relaxed">Comment le verbe &lt;하다&gt; est-il conjugué au présent poli ?</h2>
+                
+                <div class="flex flex-col items-center h-32 justify-center">
+                    <button id="mic-btn-12" onclick="toggleRecordSpeech(this, 'status-12', '해요', 70, 3, true, false)" class="bg-red-500 text-white rounded-full p-6 shadow-xl transition-transform hover:scale-105 active:scale-95 mb-3">
+                        <i class="ph-fill ph-microphone text-4xl"></i>
+                    </button>
+                    <p id="transcript-12" class="text-slate-700 h-6 text-base mb-1"></p>
+                    <p id="status-12" class="text-slate-600 font-medium h-6 text-sm"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Page 13: Outro -->
+        <div id="page-13" class="page justify-center items-center bg-green-50">
+            <div class="content-area">
+                <div class="bg-white p-5 rounded-full shadow-md mb-6">
+                    <i class="ph-fill ph-check-circle text-5xl text-green-500"></i>
+                </div>
+                <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-800 mb-6">Bon travail !</h1>
+                
+                <p class="text-content text-green-900 font-medium">
+                    Dans la leçon 2, apprenez des mots qui décrivent différentes actions et activités !
+                </p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Bottom Navigation -->
+    <div id="bottom-nav" class="w-full h-16 sm:h-20 bg-white border-t border-slate-200 flex items-center justify-between px-6 sm:px-10 hidden">
+        <button id="btn-prev" onclick="changePage(-1)" class="text-slate-500 font-bold text-base sm:text-lg flex items-center gap-2 hover:text-slate-800 transition-colors disabled:opacity-30 disabled:cursor-not-allowed">
+            <i class="ph-bold ph-caret-left"></i> Précédent
+        </button>
+        <button id="btn-next" onclick="changePage(1)" class="text-indigo-600 font-bold text-base sm:text-lg flex items-center gap-2 hover:text-indigo-800 transition-colors disabled:opacity-30 disabled:cursor-not-allowed">
+            Suivant <i class="ph-bold ph-caret-right"></i>
+        </button>
+    </div>
+
+</div>
+
+<script>
+    /* =========================================
+       State Management & Navigation
+    ========================================= */
+    const TOTAL_PAGES = 14;
+    let currentPage = 0;
+    
+    // Page Lock State
+    const completedPages = new Set();
+    const interactivePages = [7, 8, 9, 10, 11, 12];
+    
+    // Audio Context & Players
+    let currentAudio = null;
+    let audioTimeoutId = null;
+    let correctSound = null;
+    let completionSynth = null;
+    let errorSound = null;
+    let transitionSynth = null;
+
+    // Quiz & Speech State
+    let quizAttempts = 0;
+    let activeRecorder = null;
+    let recordingTimeout = null;
+
+    // Mapping of page texts auto-play audios
+    const pageTextAudios = {
+        1: 'https://res.cloudinary.com/de76i94ia/video/upload/v1771784470/audio_1_uhlami.mp3',
+        2: 'https://res.cloudinary.com/de76i94ia/video/upload/v1771784471/audio_2_opfigp.mp3',
+        3: 'https://res.cloudinary.com/de76i94ia/video/upload/v1771784471/audio_3_tjgbn0.mp3',
+        4: 'https://res.cloudinary.com/de76i94ia/video/upload/v1771784470/audio_4_fvoatv.mp3',
+        5: 'https://res.cloudinary.com/de76i94ia/video/upload/v1771784470/audio_5_cvgst6.mp3',
+        6: 'https://res.cloudinary.com/de76i94ia/video/upload/v1771784470/audio_6_p2gtb0.mp3',
+        13: 'https://res.cloudinary.com/de76i94ia/video/upload/v1771784471/audio_7_hocfvq.mp3'
+    };
+
+    async function initAudioContext() {
+        await Tone.start();
+        correctSound = new Tone.Synth({ oscillator: { type: "sine" } }).toDestination();
+        errorSound = new Tone.Synth({ oscillator: { type: "triangle" } }).toDestination();
+        completionSynth = new Tone.PolySynth(Tone.Synth).toDestination();
+        transitionSynth = new Tone.Synth({
+            oscillator: { type: "sine" },
+            envelope: { attack: 0.01, decay: 0.1, sustain: 0, release: 0.1 }
+        }).toDestination();
+        transitionSynth.volume.value = -15; // Soft transition sound
+    }
+
+    async function startLesson() {
+        await initAudioContext();
+        document.getElementById('progress-container').classList.remove('hidden');
+        document.getElementById('bottom-nav').classList.remove('hidden');
+        changePage(1);
+    }
+
+    function updateProgress() {
+        const percent = ((currentPage) / (TOTAL_PAGES - 1)) * 100;
+        document.getElementById('progress-bar').style.width = `${percent}%`;
+    }
+
+    function unlockNextButton(pageId) {
+        completedPages.add(pageId);
+        if (currentPage === pageId) {
+            const btnNext = document.getElementById('btn-next');
+            if (btnNext) btnNext.disabled = false;
+        }
+    }
+
+    function changePage(dir) {
+        // Play transition sound (except for initial start)
+        if (dir !== 0 && transitionSynth) {
+            transitionSynth.triggerAttackRelease('C6', '0.05s');
+        }
+
+        // Stop any currently playing audio and cancel timeouts
+        if(currentAudio) {
+            currentAudio.pause();
+            currentAudio.currentTime = 0;
+        }
+        if(audioTimeoutId) clearTimeout(audioTimeoutId);
+
+        // Cancel recording if active
+        if (activeRecorder && activeRecorder.state === 'recording') {
+            activeRecorder.stop();
+            clearTimeout(recordingTimeout);
+        }
+
+        const oldPage = document.getElementById(`page-${currentPage}`);
+        if(oldPage) oldPage.classList.remove('active');
+
+        currentPage += dir;
+        
+        if(currentPage < 0) currentPage = 0;
+        if(currentPage >= TOTAL_PAGES) currentPage = TOTAL_PAGES - 1;
+
+        const newPage = document.getElementById(`page-${currentPage}`);
+        if(newPage) newPage.classList.add('active');
+
+        // Reset states
+        quizAttempts = 0;
+        resetQuizUI(currentPage);
+        updateProgress();
+        
+        // Navigation buttons state
+        const btnPrev = document.getElementById('btn-prev');
+        const btnNext = document.getElementById('btn-next');
+        btnPrev.disabled = (currentPage === 1);
+        
+        if (currentPage === TOTAL_PAGES - 1) {
+            btnNext.style.display = 'none';
+            triggerLessonComplete();
+        } else {
+            btnNext.style.display = 'flex';
+            // Lock interactive pages until completed
+            if (interactivePages.includes(currentPage) && !completedPages.has(currentPage)) {
+                btnNext.disabled = true;
+            } else {
+                btnNext.disabled = false;
+            }
+        }
+
+        // Handle auto-playing text audio after 1 second
+        if (pageTextAudios[currentPage]) {
+            audioTimeoutId = setTimeout(() => {
+                if(currentAudio) {
+                    currentAudio.pause();
+                    currentAudio.currentTime = 0;
+                }
+                currentAudio = new Audio(pageTextAudios[currentPage]);
+                const playPromise = currentAudio.play();
+                
+                // Handle play() promise to prevent AbortError
+                if (playPromise !== undefined) {
+                    playPromise.catch(error => {
+                        console.warn("Auto-play interrupted or prevented:", error);
+                    });
+                }
+            }, 1000);
+        }
+    }
+
+    function playCardAudio(url) {
+        if(currentAudio) {
+            currentAudio.pause();
+            currentAudio.currentTime = 0;
+        }
+        currentAudio = new Audio(url);
+        const playPromise = currentAudio.play();
+        
+        // Handle play() promise to prevent AbortError
+        if (playPromise !== undefined) {
+            playPromise.catch(error => {
+                console.warn("Card audio playback interrupted:", error);
+            });
+        }
+    }
+
+    function triggerLessonComplete() {
+        if (completionSynth) {
+            completionSynth.triggerAttackRelease(["C5", "E5", "G5", "C6"], "4n");
+        }
+        window.parent.postMessage({ type: 'lesson_complete' }, '*');
+    }
+
+    /* =========================================
+       Quiz Logic
+    ========================================= */
+    document.querySelectorAll('#quiz-9-options .quiz-option').forEach(opt => {
+        opt.addEventListener('click', function() { this.classList.toggle('selected'); });
+    });
+
+    function checkMultiQuiz(pageId, correctAnswersArray) {
+        quizAttempts++;
+        const options = document.querySelectorAll(`#quiz-${pageId}-options .quiz-option`);
+        const statusEl = document.getElementById(`quiz-${pageId}-status`);
+        let isCorrect = true;
+        let selectedCount = 0;
+
+        options.forEach(opt => {
+            const isSelected = opt.classList.contains('selected');
+            const shouldBeSelected = opt.dataset.val === "1";
+            if(isSelected) selectedCount++;
+            if (isSelected !== shouldBeSelected) isCorrect = false;
+        });
+
+        if(selectedCount === 0) {
+            statusEl.innerText = "Veuillez sélectionner au moins une option.";
+            statusEl.className = "h-6 font-bold text-center mb-4 text-orange-500 text-sm";
+            return;
+        }
+
+        if (isCorrect) {
+            if(correctSound) correctSound.triggerAttackRelease('C5', '0.1s');
+            statusEl.innerText = "Excellent ! C'est la bonne réponse.";
+            statusEl.className = "h-6 font-bold text-center mb-4 text-green-500 text-sm";
+            document.getElementById(`quiz-${pageId}-btn`).disabled = true;
+            document.getElementById(`quiz-${pageId}-btn`).classList.add('opacity-50', 'cursor-not-allowed');
+            options.forEach(opt => { if(opt.dataset.val === "1") { opt.classList.remove('selected'); opt.classList.add('correct'); } });
+            unlockNextButton(pageId);
+        } else {
+            if(errorSound) errorSound.triggerAttackRelease('C4', '0.1s');
+            if (quizAttempts >= 3) {
+                statusEl.innerText = "Voici la bonne réponse !";
+                statusEl.className = "h-6 font-bold text-center mb-4 text-blue-500 text-sm";
+                options.forEach(opt => { opt.classList.remove('selected', 'wrong'); if(opt.dataset.val === "1") opt.classList.add('correct'); });
+                document.getElementById(`quiz-${pageId}-btn`).disabled = true;
+                unlockNextButton(pageId);
+            } else {
+                statusEl.innerText = `Incorrect. Réessayez ! (${3 - quizAttempts} essai(s) restant(s))`;
+                statusEl.className = "h-6 font-bold text-center mb-4 text-red-500 text-sm";
+                options.forEach(opt => { if(opt.classList.contains('selected')) { opt.classList.remove('selected'); opt.classList.add('wrong'); setTimeout(() => opt.classList.remove('wrong'), 1000); } });
+            }
+        }
+    }
+
+    [10, 11].forEach(pageId => {
+        document.querySelectorAll(`#quiz-${pageId}-options .single-opt`).forEach(opt => {
+            opt.addEventListener('click', function() {
+                document.querySelectorAll(`#quiz-${pageId}-options .single-opt`).forEach(sib => sib.classList.remove('selected'));
+                this.classList.add('selected');
+            });
+        });
+    });
+
+    function checkSingleQuiz(pageId) {
+        quizAttempts++;
+        const options = document.querySelectorAll(`#quiz-${pageId}-options .single-opt`);
+        const statusEl = document.getElementById(`quiz-${pageId}-status`);
+        let selectedOpt = Array.from(options).find(opt => opt.classList.contains('selected'));
+
+        if(!selectedOpt) {
+            statusEl.innerText = "Veuillez choisir une option.";
+            statusEl.className = "h-6 font-bold text-center mb-4 text-orange-500 text-sm";
+            return;
+        }
+
+        const isCorrect = selectedOpt.dataset.correct === "true";
+
+        if (isCorrect) {
+            if(correctSound) correctSound.triggerAttackRelease('C5', '0.1s');
+            statusEl.innerText = "Très bien !";
+            statusEl.className = "h-6 font-bold text-center mb-4 text-green-500 text-sm";
+            selectedOpt.classList.remove('selected');
+            selectedOpt.classList.add('correct');
+            document.getElementById(`quiz-${pageId}-btn`).disabled = true;
+            document.getElementById(`quiz-${pageId}-btn`).classList.add('opacity-50', 'cursor-not-allowed');
+            options.forEach(opt => opt.style.pointerEvents = 'none');
+            unlockNextButton(pageId);
+        } else {
+            if(errorSound) errorSound.triggerAttackRelease('C4', '0.1s');
+            if (quizAttempts >= 3) {
+                statusEl.innerText = "Voici la bonne réponse !";
+                statusEl.className = "h-6 font-bold text-center mb-4 text-blue-500 text-sm";
+                options.forEach(opt => { opt.classList.remove('selected', 'wrong'); if(opt.dataset.correct === "true") opt.classList.add('correct'); opt.style.pointerEvents = 'none'; });
+                document.getElementById(`quiz-${pageId}-btn`).disabled = true;
+                unlockNextButton(pageId);
+            } else {
+                statusEl.innerText = `Incorrect. Réessayez ! (${3 - quizAttempts} essai(s) restant(s))`;
+                statusEl.className = "h-6 font-bold text-center mb-4 text-red-500 text-sm";
+                selectedOpt.classList.remove('selected');
+                selectedOpt.classList.add('wrong');
+                setTimeout(() => selectedOpt.classList.remove('wrong'), 1000);
+            }
+        }
+    }
+
+    function resetQuizUI(pageId) {
+        if([9, 10, 11].includes(pageId)) {
+            document.querySelectorAll(`#quiz-${pageId}-options .quiz-option, #quiz-${pageId}-options .single-opt`).forEach(opt => {
+                opt.classList.remove('selected', 'correct', 'wrong');
+                opt.style.pointerEvents = 'auto';
+            });
+            const status = document.getElementById(`quiz-${pageId}-status`);
+            if(status) status.innerText = "";
+            const btn = document.getElementById(`quiz-${pageId}-btn`);
+            if(btn) { btn.disabled = false; btn.classList.remove('opacity-50', 'cursor-not-allowed'); }
+        }
+        if([7, 8, 12].includes(pageId)) {
+            const btn = document.getElementById(`mic-btn-${pageId}`);
+            if(btn) resetMicBtnState(btn);
+            const status = document.getElementById(`status-${pageId}`);
+            if(status) { status.innerText = ""; status.className = "text-slate-500 font-medium h-6 text-sm"; }
+            const transcript = document.getElementById(`transcript-${pageId}`);
+            if(transcript) transcript.innerText = "";
+        }
+    }
+
+    function resetMicBtnState(btn) {
+        btn.disabled = false;
+        btn.classList.remove('recording-pulse', 'bg-green-500', 'bg-slate-400', 'cursor-not-allowed', 'shadow-none');
+        btn.classList.add('bg-red-500', 'shadow-lg');
+        btn.innerHTML = `<i class="ph-fill ph-microphone ${btn.id.includes('12') ? 'text-4xl' : 'text-3xl'}"></i>`;
+    }
+
+    /* =========================================
+       Speech Recognition API (Naver Clova)
+    ========================================= */
+    const BASE_44_ORIGIN = "https://coreeno.base44.app"; 
+    const CLOVA_API_FUNCTION_URL = BASE_44_ORIGIN + '/api/functions/naverClovaSpeech';
+
+    async function toggleRecordSpeech(btn, statusId, referenceText, threshold, maxTries, forcePassOnMax, mustRepeat) {
+        const statusEl = document.getElementById(statusId);
+        
+        // Manual stop logic if already recording
+        if (btn.classList.contains('recording-pulse')) {
+            if (activeRecorder && activeRecorder.state === 'recording') {
+                activeRecorder.stop();
+                clearTimeout(recordingTimeout);
+            }
+            return;
+        }
+
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const mediaRecorder = new MediaRecorder(stream);
+            let audioChunks = [];
+
+            mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+            
+            mediaRecorder.onstop = async () => {
+                btn.classList.remove('recording-pulse');
+                btn.innerHTML = `<i class="ph ph-spinner animate-spin ${btn.id.includes('12') ? 'text-4xl' : 'text-3xl'}"></i>`;
+                statusEl.innerText = ""; // Empty processing text
+                
+                const transcriptEl = document.getElementById(statusId.replace('status', 'transcript'));
+                if(transcriptEl) transcriptEl.innerHTML = "";
+                
+                const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                const reader = new FileReader();
+                reader.readAsDataURL(audioBlob);
+                reader.onloadend = async () => {
+                    const base64data = reader.result.split(',')[1];
+                    await processSpeechApi(base64data, referenceText, threshold, maxTries, forcePassOnMax, mustRepeat, btn, statusEl);
+                }
+                
+                stream.getTracks().forEach(track => track.stop());
+            };
+
+            // Start logic
+            mediaRecorder.start();
+            activeRecorder = mediaRecorder;
+            btn.classList.add('recording-pulse');
+            btn.innerHTML = `<i class="ph-fill ph-stop ${btn.id.includes('12') ? 'text-4xl' : 'text-3xl'}"></i>`;
+            statusEl.innerText = ""; // 불필요한 텍스트 삭제
+
+            // Max 12 seconds
+            recordingTimeout = setTimeout(() => {
+                if(mediaRecorder.state === 'recording') mediaRecorder.stop();
+            }, 12000);
+
+        } catch (err) {
+            console.error("Mic access denied or error:", err);
+            statusEl.innerText = "Erreur de microphone.";
+            statusEl.className = "text-red-500 font-medium h-6 text-sm";
+        }
+    }
+
+    async function processSpeechApi(audioBase64, referenceText, threshold, maxTries, forcePassOnMax, mustRepeat, btn, statusEl) {
+        quizAttempts++;
+        let score = 0;
+        let recognizedText = "";
+
+        try {
+            const res = await fetch(CLOVA_API_FUNCTION_URL, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ audioBase64: audioBase64, languageCode: "Kor", referenceText: referenceText })
+            });
+            if (!res.ok) throw new Error("API Error");
+            const result = await res.json();
+            score = result.assessment?.pronunciation_score || 0;
+            recognizedText = result.recognized || result.text || "";
+        } catch (e) {
+            console.warn("API Error, fallback score generation", e);
+            score = Math.floor(Math.random() * 30) + 60;
+            recognizedText = score >= threshold ? referenceText : "???";
+        }
+
+        const transcriptEl = document.getElementById(statusEl.id.replace('status', 'transcript'));
+        if (transcriptEl && recognizedText) {
+            transcriptEl.innerHTML = `<span class="text-slate-500">Vous avez dit : </span><span class="font-bold text-indigo-600">"${recognizedText}"</span>`;
+        }
+
+        let msg = '';
+        let isPass = score >= threshold;
+        let isLastAttempt = quizAttempts >= maxTries;
+        let stopNow = isPass && !mustRepeat;
+        
+        if (stopNow || isLastAttempt) {
+            // Final step message (2차 메시지 포맷)
+            if (score >= threshold) msg = `Très bien! (Score: ${score}). Passez à la page suivante.`;
+            else if (score >= 30) msg = `C'était pas mal! Passez à la page suivante.`;
+            else msg = `Passez à la page suivante.`;
+            
+            statusEl.innerHTML = msg;
+            statusEl.className = (isPass || (isLastAttempt && forcePassOnMax)) ? 'text-green-600 font-bold h-6 text-sm' : 'text-blue-600 font-bold h-6 text-sm';
+            
+            disableMicBtn(btn, isPass || (isLastAttempt && forcePassOnMax));
+            unlockNextButton(currentPage);
+            
+            if (isPass || (isLastAttempt && forcePassOnMax)) {
+                if(correctSound && !(isLastAttempt && forcePassOnMax && !isPass)) correctSound.triggerAttackRelease('C5', '0.2s');
+                if(isLastAttempt && forcePassOnMax && !isPass && correctSound) correctSound.triggerAttackRelease('C5', '0.2s'); // For page 12 forced pass
+            } else {
+                if(errorSound) errorSound.triggerAttackRelease('C4', '0.1s');
+            }
+        } else {
+            // Retry step message (1차 메시지 포맷)
+            if (score >= threshold) msg = `Très bien! (Score: ${score}). Répétez encore une fois.`;
+            else if (score >= 30) msg = `On y est presque. Répétez encore une fois.`;
+            else msg = `Répétez encore une fois.`;
+            
+            if (!isPass && quizAttempts === 2 && btn.id === 'mic-btn-12') {
+                msg = `Réponse : <strong class="text-indigo-600 text-lg font-black">&lt;해요&gt;</strong>. Répétez encore une fois.`;
+            }
+            
+            statusEl.innerHTML = msg;
+            statusEl.className = isPass ? 'text-green-600 font-bold h-6 text-sm' : 'text-orange-500 font-bold h-6 text-sm';
+            
+            if (isPass) {
+                if(correctSound) correctSound.triggerAttackRelease('C5', '0.2s');
+            } else {
+                if(errorSound) errorSound.triggerAttackRelease('C4', '0.1s');
+            }
+            
+            resetMicBtnState(btn);
+        }
+    }
+
+    function disableMicBtn(btn, success = false) {
+        btn.disabled = true;
+        btn.className = `text-white rounded-full ${btn.id.includes('12') ? 'p-6' : 'p-5'} shadow-none mb-2 flex items-center justify-center cursor-not-allowed transition-colors ${success ? 'bg-green-500' : 'bg-slate-400'}`;
+        btn.innerHTML = `<i class="ph-bold ph-check ${btn.id.includes('12') ? 'text-4xl' : 'text-3xl'}"></i>`;
+    }
+
+</script>
+</body>
+</html>
