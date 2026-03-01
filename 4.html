@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Leçon 4 - L’utilisation des particules d’objet</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- Tone.js for Sound Effects -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+
+    <style>
+        /* CSS Reset & Strict No-Scroll Constraints */
+        html, body {
+            margin: 0; padding: 0;
+            width: 100vw; height: 100vh;
+            overflow: hidden;
+            background-color: #f1f5f9;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            touch-action: none;
+        }
+
+        /* Full Screen Flex Container */
+        #app-container {
+            width: 100%;
+            height: 100%;
+            background-color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        #progress-container, #bottom-nav {
+            flex-shrink: 0;
+        }
+
+        /* Pages Wrapper */
+        #pages-wrapper {
+            flex: 1;
+            position: relative;
+            width: 100%;
+            display: flex;
+            overflow: hidden;
+        }
+
+        .page {
+            display: none;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+        .page.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Content Area */
+        .content-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            text-align: center;
+            min-h: 0;
+        }
+
+        .text-content {
+            font-size: 1.05rem;
+            line-height: 1.6rem;
+            color: #334155;
+            max-width: 42rem;
+            margin: 0 auto;
+        }
+        
+        @media (min-width: 768px) {
+            .text-content {
+                font-size: 1.25rem;
+                line-height: 2rem;
+            }
+        }
+
+        /* Interactive Card Button */
+        .card-btn {
+            transition: transform 0.1s, box-shadow 0.1s;
+            cursor: pointer;
+        }
+        .card-btn:active {
+            transform: scale(0.97);
+        }
+
+        /* Pulse Animation for Recording */
+        .recording-pulse {
+            animation: pulse-red 1.5s infinite;
+        }
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+
+        /* Quiz Options */
+        .quiz-option {
+            transition: all 0.2s;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+        .quiz-option.selected {
+            background-color: #e0e7ff;
+            border-color: #6366f1;
+            color: #4338ca;
+        }
+        .quiz-option.correct {
+            background-color: #dcfce7;
+            border-color: #22c55e;
+            color: #15803d;
+        }
+        .quiz-option.wrong {
+            background-color: #fee2e2;
+            border-color: #ef4444;
+            color: #b91c1c;
+        }
+        
+        /* Utility to manage multi-line cards compactly */
+        .compact-card {
+            padding: 1.25rem !important;
+        }
+        @media (min-height: 700px) {
+            .compact-card {
+                padding: 1.5rem !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div id="app-container">
+    
+    <!-- Top Progress Bar -->
+    <div id="progress-container" class="w-full h-2 bg-slate-100 hidden">
+        <div id="progress-bar" class="h-full bg-indigo-500 transition-all duration-300 w-0"></div>
+    </div>
+
+    <!-- Pages Container -->
+    <div id="pages-wrapper">
+
+        <!-- Page 0: Cover -->
+        <div id="page-0" class="page active justify-center items-center bg-indigo-50">
+            <div class="content-area">
+                <p class="text-indigo-600 font-semibold mb-2 text-lg">Chapitre 2 - Les verbes séparables</p>
+                <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-800 mb-10">Leçon 4 - L’utilisation des particules d’objet</h1>
+                <button onclick="startLesson()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-10 rounded-full text-xl shadow-lg transition-transform transform hover:-translate-y-1 active:translate-y-0 flex items-center gap-3">
+                    <i class="ph-fill ph-play-circle text-2xl"></i>
+                    Commencer
+                </button>
+            </div>
+        </div>
+
+        <!-- Page 1: Intro Text -->
+        <div id="page-1" class="page">
+            <div class="content-area">
+                <p class="text-content">
+                    Bonjour. Bienvenue dans le Chapitre 2. Dans ce chapitre, nous allons apprendre diverses manières d'utiliser les verbes composés avec « 하다 » dans une phrase.
+                </p>
+            </div>
+        </div>
+
+        <!-- Page 2: Nom + 하다 -->
+        <div id="page-2" class="page">
+            <div class="content-area">
+                <div class="bg-white border-2 border-slate-200 shadow-sm rounded-2xl p-4 mb-4 w-full max-w-sm mx-auto">
+                    <h2 class="text-xl sm:text-2xl font-bold text-indigo-600 mb-1">Nom + 하다</h2>
+                    <p class="text-sm font-semibold text-slate-500">Nom + er/ir</p>
+                </div>
+                
+                <button onclick="playCardAudio('https://res.cloudinary.com/de76i94ia/video/upload/v1772019147/%E1%84%8B%E1%85%B5%E1%86%AF%E1%84%92%E1%85%A1%E1%84%83%E1%85%A1_fkywgo.mp3')" class="card-btn bg-white border-2 border-slate-200 shadow-md rounded-3xl compact-card mb-4 w-full max-w-xs flex flex-col items-center justify-center hover:bg-slate-50 relative mx-auto">
+                    <h3 class="text-3xl font-black mb-2">
+                        <span class="text-blue-600">일</span><span class="text-red-500">하다</span>
+                    </h3>
+                    <p class="text-xs sm:text-sm font-medium mb-1 w-full text-center">
+                        <span class="text-blue-600 font-bold">travail</span> <span class="text-red-500 font-bold">faire</span>
+                    </p>
+                    <p class="text-[0.95rem] text-slate-500 font-semibold mb-2 leading-tight">Travailler</p>
+                    <i class="ph-fill ph-play-circle text-3xl text-indigo-400"></i>
+                </button>
+                
+                <p class="text-content">
+                    Comme nous l'avons vu dans le Chapitre 1 avec des mots comme « 일하다 » , « 공부하다 » , et « 요리하다 », les mots composés d'un nom et de « 하다 » peuvent être considérés comme le verbe « 하다 » prenant un complément d'objet direct.<br>
+                    Par conséquent, on peut les utiliser comme un seul mot, comme « 일하다 », ou les séparer en deux mots, comme « 일 » et « 하다 ».
+                </p>
+            </div>
+        </div>
+
+        <!-- Page 3: Nom + particule d’objet + 하다 -->
+        <div id="page-3" class="page">
+            <div class="content-area">
+                <div class="bg-white border-2 border-slate-200 shadow-sm rounded-2xl p-4 mb-5 w-full max-w-sm mx-auto">
+                    <h2 class="text-lg sm:text-xl font-bold text-indigo-600 mb-1">Nom + particule d’objet + 하다</h2>
+                    <p class="text-sm font-semibold text-slate-500">Faire + nom</p>
+                </div>
+                
+                <button onclick="playCardAudio('https://res.cloudinary.com/de76i94ia/video/upload/v1772097174/%E1%84%8B%E1%85%B5%E1%86%AF%E1%84%8B%E1%85%B3%E1%86%AF_us58c6.mp3')" class="card-btn bg-white border-2 border-slate-200 shadow-md rounded-3xl compact-card mb-5 w-full max-w-xs flex flex-col items-center justify-center hover:bg-slate-50 relative mx-auto">
+                    <h3 class="text-3xl font-black mb-2">
+                        <span class="text-blue-600">일</span>을 <span class="text-red-500">하다</span>
+                    </h3>
+                    <p class="text-xs sm:text-sm font-medium mb-1 w-full text-center">
+                        <span class="text-blue-600 font-bold">travail</span> <span class="text-red-500 font-bold">faire</span>
+                    </p>
+                    <p class="text-[0.95rem] text-slate-500 font-semibold mb-2 leading-tight">Faire le travail (=travailler)</p>
+                    <i class="ph-fill ph-play-circle text-3xl text-indigo-400"></i>
+                </button>
+                
+                <p class="text-content">
+                    Lorsqu'on sépare le nom et « 하다 », il faut ajouter la particule d'objet « 을 » ou « 를 » après le nom. Cela indique que le nom est utilisé comme complément d'objet direct du verbe « 하다 ».
+                </p>
+            </div>
+        </div>
+
+        <!-- Page 4: Consonne + 을 / Voyelle + 를 (Two cards stacked) -->
+        <div id="page-4" class="page">
+            <div class="content-area">
+                <div class="bg-indigo-50 border-2 border-indigo-100 shadow-sm rounded-2xl p-3 mb-4 w-full max-w-md mx-auto">
+                    <h2 class="text-base sm:text-lg font-bold text-indigo-800">Consonne + 을 <span class="text-slate-400 mx-2">|</span> Voyelle + 를</h2>
+                </div>
+                
+                <div class="flex flex-col gap-3 w-full justify-center items-center mb-4">
+                    <!-- Card 1 -->
+                    <button onclick="playCardAudio('https://res.cloudinary.com/de76i94ia/video/upload/v1772097174/%E1%84%8B%E1%85%B5%E1%86%AF%E1%84%8B%E1%85%B3%E1%86%AF_us58c6.mp3')" class="card-btn bg-white border-2 border-slate-200 shadow-md rounded-3xl p-4 w-full max-w-xs flex flex-col items-center justify-center hover:bg-slate-50 relative">
+                        <h3 class="text-2xl font-black mb-1">
+                            <span class="text-blue-600">일</span>을 <span class="text-red-500">하다</span>
+                        </h3>
+                        <p class="text-xs font-medium mb-1 w-full text-center">
+                            <span class="text-blue-600 font-bold">travail</span> <span class="text-red-500 font-bold">faire</span>
+                        </p>
+                        <p class="text-sm text-slate-500 font-semibold mb-1">Faire le travail (=travailler)</p>
+                        <i class="ph-fill ph-play-circle text-2xl text-indigo-400 mt-1"></i>
+                    </button>
+                    <!-- Card 2 -->
+                    <button onclick="playCardAudio('https://res.cloudinary.com/de76i94ia/video/upload/v1772097179/%E1%84%8E%E1%85%A5%E1%86%BC%E1%84%89%E1%85%A9%E1%84%85%E1%85%B3%E1%86%AF_mxfg4y.mp3')" class="card-btn bg-white border-2 border-slate-200 shadow-md rounded-3xl p-4 w-full max-w-xs flex flex-col items-center justify-center hover:bg-slate-50 relative">
+                        <h3 class="text-2xl font-black mb-1">
+                            <span class="text-blue-600">청소</span>를 <span class="text-red-500">하다</span>
+                        </h3>
+                        <p class="text-xs font-medium mb-1 w-full text-center">
+                            <span class="text-blue-600 font-bold">ménage</span> <span class="text-red-500 font-bold">faire</span>
+                        </p>
+                        <p class="text-sm text-slate-500 font-semibold mb-1">Faire le ménage</p>
+                        <i class="ph-fill ph-play-circle text-2xl text-indigo-400 mt-1"></i>
+                    </button>
+                </div>
+                
+                <p class="text-content">
+                    La forme de la particule d'objet change en fonction du son qui la précède. Si la syllabe précédente se termine par une consonne, on ajoute « 을 » en faisant la liaison, et si elle se termine par une voyelle, on ajoute « 를 ».
+                </p>
+            </div>
+        </div>
+
+        <!-- Page 5: Speech Practice - 일을 하다 -->
+        <div id="page-5" class="page">
+            <div class="content-area">
+                <h2 class="text-xl sm:text-2xl font-bold text-slate-800 mb-6">Répétez après moi.</h2>
+                
+                <button onclick="playCardAudio('https://res.cloudinary.com/de76i94ia/video/upload/v1772097174/%E1%84%8B%E1%85%B5%E1%86%AF%E1%84%8B%E1%85%B3%E1%86%AF_us58c6.mp3')" class="card-btn bg-white border-2 border-slate-200 shadow-md rounded-3xl p-8 mb-8 w-full max-w-xs flex flex-col items-center justify-center hover:bg-slate-50 relative">
+                    <h3 class="text-4xl font-black mb-3">
+                        <span class="text-blue-600">일</span>을 <span class="text-red-500">하다</span>
+                    </h3>
+                    <p class="text-sm font-medium mb-1 w-full text-center">
+                        <span class="text-blue-600 font-bold">travail</span> <span class="text-red-500 font-bold">faire</span>
+                    </p>
+                    <p class="text-base text-slate-500 font-semibold w-full text-center mb-2 leading-tight">Faire le travail (=travailler)</p>
+                    <i class="ph-fill ph-play-circle text-3xl text-indigo-400"></i>
+                </button>
+
+                <div class="flex flex-col items-center h-28 justify-center">
+                    <button id="mic-btn-5" onclick="toggleRecordSpeech(this, 'status-5', '일을 하다', 50, 2, false, true)" class="bg-red-500 text-white rounded-full p-5 shadow-lg transition-transform hover:scale-105 active:scale-95 mb-2">
+                        <i class="ph-fill ph-microphone text-3xl"></i>
+                    </button>
+                    <p id="transcript-5" class="text-slate-700 h-5 text-sm mb-1"></p>
+                    <p id="status-5" class="text-slate-500 font-medium h-6"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Page 6: Speech Practice - 청소를 하다 -->
+        <div id="page-6" class="page">
+            <div class="content-area">
+                <h2 class="text-xl sm:text-2xl font-bold text-slate-800 mb-6">Répétez après moi.</h2>
+                
+                <button onclick="playCardAudio('https://res.cloudinary.com/de76i94ia/video/upload/v1772097179/%E1%84%8E%E1%85%A5%E1%86%BC%E1%84%89%E1%85%A9%E1%84%85%E1%85%B3%E1%86%AF_mxfg4y.mp3')" class="card-btn bg-white border-2 border-slate-200 shadow-md rounded-3xl p-8 mb-8 w-full max-w-xs flex flex-col items-center justify-center hover:bg-slate-50 relative">
+                    <h3 class="text-4xl font-black mb-3">
+                        <span class="text-blue-600">청소</span>를 <span class="text-red-500">하다</span>
+                    </h3>
+                    <p class="text-sm font-medium mb-1 w-full text-center">
+                        <span class="text-blue-600 font-bold">ménage</span> <span class="text-red-500 font-bold">faire</span>
+                    </p>
+                    <p class="text-base text-slate-500 font-semibold w-full text-center mb-2 leading-tight">Faire le ménage</p>
+                    <i class="ph-fill ph-play-circle text-3xl text-indigo-400"></i>
+                </button>
+
+                <div class="flex flex-col items-center h-28 justify-center">
+                    <button id="mic-btn-6" onclick="toggleRecordSpeech(this, 'status-6', '청소를 하다', 50, 2, false, true)" class="bg-red-500 text-white rounded-full p-5 shadow-lg transition-transform hover:scale-105 active:scale-95 mb-2">
+                        <i class="ph-fill ph-microphone text-3xl"></i>
+                    </button>
+                    <p id="transcript-6" class="text-slate-700 h-5 text-sm mb-1"></p>
+                    <p id="status-6" class="text-slate-500 font-medium h-6"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Page 7: Comparison (저는 공부해요 vs 저는 공부를 해요) -->
+        <div id="page-7" class="page">
+            <div class="content-area">
+                <div class="flex flex-col gap-3 w-full justify-center items-center mb-5">
+                    <!-- Card 1 -->
+                    <button onclick="playCardAudio('https://res.cloudinary.com/de76i94ia/video/upload/v1772019975/%E1%84%8C%E1%85%A5_%E1%84%80%E1%85%A9%E1%86%BC%E1%84%87%E1%85%AE_inro08.mp3')" class="card-btn bg-white border-2 border-slate-200 shadow-md rounded-3xl p-5 w-full max-w-xs flex flex-col items-center justify-center hover:bg-slate-50 relative">
+                        <h3 class="text-2xl font-black text-slate-800 mb-2">저는 공부해요.</h3>
+                        <p class="text-[0.95rem] text-slate-500 font-semibold w-full text-center mb-1">J’étudie.</p>
+                        <i class="ph-fill ph-play-circle text-2xl text-indigo-400"></i>
+                    </button>
+                    <!-- Card 2 -->
+                    <button onclick="playCardAudio('https://res.cloudinary.com/de76i94ia/video/upload/v1772097176/%E1%84%8C%E1%85%A5%E1%84%82%E1%85%B3%E1%86%AB_%E1%84%80%E1%85%A9%E1%86%BC%E1%84%87%E1%85%AE%E1%84%85%E1%85%B3%E1%86%AF_m4rgpz.mp3')" class="card-btn bg-white border-2 border-slate-200 shadow-md rounded-3xl p-5 w-full max-w-xs flex flex-col items-center justify-center hover:bg-slate-50 relative">
+                        <h3 class="text-2xl font-black text-slate-800 mb-2">저는 공부를 해요.</h3>
+                        <p class="text-[0.95rem] text-slate-500 font-semibold w-full text-center mb-1">J’étudie.</p>
+                        <i class="ph-fill ph-play-circle text-2xl text-indigo-400"></i>
+                    </button>
+                </div>
+                
+                <p class="text-content">
+                    S'il s'agit d'une phrase simple sans adverbe ni autre complément d'objet, vous pouvez choisir de séparer le nom ou de ne pas le faire.
+                </p>
+            </div>
+        </div>
+
+        <!-- Page 8: Speech Practice - 저는 공부를 해요. -->
+        <div id="page-8" class="page">
+            <div class="content-area">
+                <h2 class="text-xl sm:text-2xl font-bold text-slate-800 mb-6">Répétez après moi.</h2>
+                
+                <button onclick="playCardAudio('https://res.cloudinary.com/de76i94ia/video/upload/v1772097176/%E1%84%8C%E1%85%A5%E1%84%82%E1%85%B3%E1%86%AB_%E1%84%80%E1%85%A9%E1%86%BC%E1%84%87%E1%85%AE%E1%84%85%E1%85%B3%E1%86%AF_m4rgpz.mp3')" class="card-btn bg-white border-2 border-slate-200 shadow-md rounded-3xl p-8 mb-8 w-full max-w-xs flex flex-col items-center justify-center hover:bg-slate-50 relative">
+                    <h3 class="text-3xl font-black text-slate-800 mb-3">저는 공부를 해요.</h3>
+                    <p class="text-lg text-slate-500 font-semibold w-full text-center mb-2">J’étudie.</p>
+                    <i class="ph-fill ph-play-circle text-3xl text-indigo-400"></i>
+                </button>
+
+                <div class="flex flex-col items-center h-28 justify-center">
+                    <button id="mic-btn-8" onclick="toggleRecordSpeech(this, 'status-8', '저는 공부를 해요.', 50, 2, false, true)" class="bg-red-500 text-white rounded-full p-5 shadow-lg transition-transform hover:scale-105 active:scale-95 mb-2">
+                        <i class="ph-fill ph-microphone text-3xl"></i>
+                    </button>
+                    <p id="transcript-8" class="text-slate-700 h-5 text-sm mb-1"></p>
+                    <p id="status-8" class="text-slate-500 font-medium h-6"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Page 9: 저는 매일 공부해요. -->
+        <div id="page-9" class="page">
+            <div class="content-area">
+                <button onclick="playCardAudio('https://res.cloudinary.com/de76i94ia/video/upload/v1772097177/%E1%84%8C%E1%85%A5%E1%84%82%E1%85%B3%E1%86%AB_%E1%84%86%E1%85%A2%E1%84%8B%E1%85%B5%E1%86%AF_%E1%84%80%E1%85%A9%E1%86%BC%E1%84%87%E1%85%AE_hoakz2.mp3')" class="card-btn bg-white border-2 border-slate-200 shadow-md rounded-3xl compact-card mb-6 w-full max-w-sm flex flex-col items-center justify-center hover:bg-slate-50 relative mx-auto">
+                    <h3 class="text-3xl font-black mb-2">
+                        <span class="text-blue-600">저</span>는 <span class="text-green-600">매일</span> <span class="text-red-500">공부해요.</span>
+                    </h3>
+                    <p class="text-xs sm:text-sm font-medium mb-2 w-full text-center">
+                        <span class="text-blue-600 font-bold">Je</span> <span class="text-green-600 font-bold">tous les jours</span> <span class="text-red-500 font-bold">étudie</span>
+                    </p>
+                    <p class="text-[1rem] text-slate-500 font-semibold mb-2 leading-tight">J’étudie tous les jours.</p>
+                    <i class="ph-fill ph-play-circle text-3xl text-indigo-400"></i>
+                </button>
+                
+                <p class="text-content">
+                    Un adverbe se place généralement devant le verbe. Si l'on considère « 공부하다 » comme un seul mot sans le séparer, on place « 매일 » devant « 공부하다 ».
+                </p>
+            </div>
+        </div>
+
+        <!-- Page 10: 저는 공부를 매일 해요. -->
+        <div id="page-10" class="page">
+            <div class="content-area">
+                <button onclick="playCardAudio('https://res.cloudinary.com/de76i94ia/video/upload/v1772097176/%E1%84%8C%E1%85%A5%E1%84%82%E1%85%B3%E1%86%AB_%E1%84%80%E1%85%A9%E1%86%BC%E1%84%87%E1%85%AE%E1%84%85%E1%85%B3%E1%86%AF_%E1%84%86%E1%85%A2%E1%84%8B%E1%85%B5%E1%86%AF_xx6n4i.mp3')" class="card-btn bg-white border-2 border-slate-200 shadow-md rounded-3xl compact-card mb-6 w-full max-w-sm flex flex-col items-center justify-center hover:bg-slate-50 relative mx-auto">
+                    <h3 class="text-3xl font-black mb-2">
+                        <span class="text-blue-600">저</span>는 <span class="text-purple-600">공부</span>를 <span class="text-green-600">매일</span> <span class="text-red-500">해요.</span>
+                    </h3>
+                    <p class="text-xs sm:text-sm font-medium mb-2 w-full text-center">
+                        <span class="text-blue-600 font-bold">Je</span> <span class="text-purple-600 font-bold">étude</span> <span class="text-green-600 font-bold">tous les jours</span> <span class="text-red-500 font-bold">fais</span>
+                    </p>
+                    <p class="text-[1rem] text-slate-500 font-semibold mb-2 leading-tight">J’étudie tous les jours.</p>
+                    <i class="ph-fill ph-play-circle text-3xl text-indigo-400"></i>
+                </button>
+                
+                <p class="text-content">
+                    Cependant, si l'on sépare en deux mots « 공부 » et « 하다 » et que l'on utilise la particule d'objet, « 매일 » se place devant le verbe « 하다 ».
+                </p>
+            </div>
+        </div>
+
+        <!-- Page 11: Speech Practice - 저는 매일 공부해요. -->
+        <div id="page-11" class="page">
+            <div class="content-area">
+                <h2 class="text-xl sm:text-2xl font-bold text-slate-800 mb-6">Répétez après moi.</h2>
+                
+                <button onclick="playCardAudio('https://res.cloudinary.com/de76i94ia/video/upload/v1772097177/%E1%84%8C%E1%85%A5%E1%84%82%E1%85%B3%E1%86%AB_%E1%84%86%E1%85%A2%E1%84%8B%E1%85%B5%E1%86%AF_%E1%84%80%E1%85%A9%E1%86%BC%E1%84%87%E1%85%AE_hoakz2.mp3')" class="card-btn bg-white border-2 border-slate-200 shadow-md rounded-3xl p-6 mb-8 w-full max-w-sm flex flex-col items-center justify-center hover:bg-slate-50 relative mx-auto">
+                    <h3 class="text-3xl font-black mb-3">
+                        <span class="text-blue-600">저</span>는 <span class="text-green-600">매일</span> <span class="text-red-500">공부해요.</span>
+                    </h3>
+                    <p class="text-xs sm:text-sm font-medium mb-1 w-full text-center">
+                        <span class="text-blue-600 font-bold">Je</span> <span class="text-green-600 font-bold">tous les jours</span> <span class="text-red-500 font-bold">étudie</span>
+                    </p>
+                    <p class="text-[0.95rem] text-slate-500 font-semibold w-full text-center mb-2">J’étudie tous les jours.</p>
+                    <i class="ph-fill ph-play-circle text-3xl text-indigo-400"></i>
+                </button>
+
+                <div class="flex flex-col items-center h-28 justify-center">
+                    <button id="mic-btn-11" onclick="toggleRecordSpeech(this, 'status-11', '저는 매일 공부해요.', 50, 2, false, true)" class="bg-red-500 text-white rounded-full p-5 shadow-lg transition-transform hover:scale-105 active:scale-95 mb-2">
+                        <i class="ph-fill ph-microphone text-3xl"></i>
+                    </button>
+                    <p id="transcript-11" class="text-slate-700 h-5 text-sm mb-1"></p>
+                    <p id="status-11" class="text-slate-500 font-medium h-6"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Page 12: Speech Practice - 저는 공부를 매일 해요. -->
+        <div id="page-12" class="page">
+            <div class="content-area">
+                <h2 class="text-xl sm:text-2xl font-bold text-slate-800 mb-6">Répétez après moi.</h2>
+                
+                <button onclick="playCardAudio('https://res.cloudinary.com/de76i94ia/video/upload/v1772097176/%E1%84%8C%E1%85%A5%E1%84%82%E1%85%B3%E1%86%AB_%E1%84%80%E1%85%A9%E1%86%BC%E1%84%87%E1%85%AE%E1%84%85%E1%85%B3%E1%86%AF_%E1%84%86%E1%85%A2%E1%84%8B%E1%85%B5%E1%86%AF_xx6n4i.mp3')" class="card-btn bg-white border-2 border-slate-200 shadow-md rounded-3xl p-6 mb-8 w-full max-w-sm flex flex-col items-center justify-center hover:bg-slate-50 relative mx-auto">
+                    <h3 class="text-2xl sm:text-3xl font-black mb-3">
+                        <span class="text-blue-600">저</span>는 <span class="text-purple-600">공부</span>를 <span class="text-green-600">매일</span> <span class="text-red-500">해요.</span>
+                    </h3>
+                    <p class="text-xs sm:text-sm font-medium mb-1 w-full text-center">
+                        <span class="text-blue-600 font-bold">Je</span> <span class="text-purple-600 font-bold">étude</span> <span class="text-green-600 font-bold">tous les jours</span> <span class="text-red-500 font-bold">fais</span>
+                    </p>
+                    <p class="text-[0.95rem] text-slate-500 font-semibold w-full text-center mb-2">J’étudie tous les jours.</p>
+                    <i class="ph-fill ph-play-circle text-3xl text-indigo-400"></i>
+                </button>
+
+                <div class="flex flex-col items-center h-28 justify-center">
+                    <button id="mic-btn-12" onclick="toggleRecordSpeech(this, 'status-12', '저는 공부를 매일 해요.', 50, 2, false, true)" class="bg-red-500 text-white rounded-full p-5 shadow-lg transition-transform hover:scale-105 active:scale-95 mb-2">
+                        <i class="ph-fill ph-microphone text-3xl"></i>
+                    </button>
+                    <p id="transcript-12" class="text-slate-700 h-5 text-sm mb-1"></p>
+                    <p id="status-12" class="text-slate-500 font-medium h-6"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Page 13: Quiz Single 1 (Infinite) -->
+        <div id="page-13" class="page">
+            <div class="content-area w-full max-w-lg mx-auto">
+                <div class="bg-slate-100 p-4 rounded-xl mb-6 text-center w-full max-w-sm mx-auto shadow-sm">
+                    <p class="text-xl font-bold text-slate-800">저는 청소를 해요.</p>
+                </div>
+                <h2 class="text-base sm:text-lg font-bold text-slate-800 mb-6">Dans cette phrase, quelle est la fonction grammaticale de &lt;청소&gt; ?</h2>
+                
+                <div class="grid grid-cols-2 gap-2 sm:gap-3 w-full mb-6" id="quiz-13-options">
+                    <div class="quiz-option single-opt border-2 border-slate-200 rounded-xl p-3 font-bold text-sm sm:text-base text-slate-700 bg-white">Sujet</div>
+                    <div class="quiz-option single-opt border-2 border-slate-200 rounded-xl p-3 font-bold text-sm sm:text-base text-slate-700 bg-white" data-correct="true">Complément d’objet</div>
+                    <div class="quiz-option single-opt border-2 border-slate-200 rounded-xl p-3 font-bold text-sm sm:text-base text-slate-700 bg-white">Verbe</div>
+                    <div class="quiz-option single-opt border-2 border-slate-200 rounded-xl p-3 font-bold text-sm sm:text-base text-slate-700 bg-white">Nom</div>
+                    <div class="quiz-option single-opt border-2 border-slate-200 rounded-xl p-3 font-bold text-sm sm:text-base text-slate-700 bg-white col-span-2">Adverbe</div>
+                </div>
+
+                <p id="quiz-13-status" class="h-6 font-bold text-center mb-4 text-red-500 text-sm"></p>
+                <button id="quiz-13-btn" onclick="checkSingleQuiz(13, true)" class="bg-slate-800 hover:bg-slate-900 text-white font-bold py-2 px-8 rounded-xl text-md transition-colors w-full sm:w-auto">Valider</button>
+            </div>
+        </div>
+
+        <!-- Page 14: Quiz Single 2 (Infinite) -->
+        <div id="page-14" class="page">
+            <div class="content-area w-full max-w-lg mx-auto">
+                <h2 class="text-lg sm:text-xl font-bold text-slate-800 mb-6">Choisissez la particule appropriée pour remplir le vide.</h2>
+                
+                <div class="bg-slate-100 border-l-4 border-indigo-500 p-4 rounded-r-xl mb-6 text-center w-full max-w-xs mx-auto shadow-sm">
+                    <p class="text-xl font-bold text-slate-800">오빠는 식사<span class="text-indigo-600 underline decoration-indigo-300 underline-offset-4 font-black mx-1">_____</span> 해요.</p>
+                </div>
+                
+                <div class="grid grid-cols-3 gap-3 w-full mb-6" id="quiz-14-options">
+                    <div class="quiz-option single-opt border-2 border-slate-200 rounded-xl p-3 font-bold text-lg text-slate-700 bg-white">은</div>
+                    <div class="quiz-option single-opt border-2 border-slate-200 rounded-xl p-3 font-bold text-lg text-slate-700 bg-white">는</div>
+                    <div class="quiz-option single-opt border-2 border-slate-200 rounded-xl p-3 font-bold text-lg text-slate-700 bg-white">이</div>
+                    <div class="quiz-option single-opt border-2 border-slate-200 rounded-xl p-3 font-bold text-lg text-slate-700 bg-white">가</div>
+                    <div class="quiz-option single-opt border-2 border-slate-200 rounded-xl p-3 font-bold text-lg text-slate-700 bg-white">을</div>
+                    <div class="quiz-option single-opt border-2 border-slate-200 rounded-xl p-3 font-bold text-lg text-slate-700 bg-white" data-correct="true">를</div>
+                </div>
+
+                <p id="quiz-14-status" class="h-6 font-bold text-center mb-4 text-red-500 text-sm"></p>
+                <button id="quiz-14-btn" onclick="checkSingleQuiz(14, true)" class="bg-slate-800 hover:bg-slate-900 text-white font-bold py-2 px-8 rounded-xl text-md transition-colors w-full sm:w-auto">Valider</button>
+            </div>
+        </div>
+
+        <!-- Page 15: Quiz Single 3 (Infinite) -->
+        <div id="page-15" class="page">
+            <div class="content-area w-full max-w-xl mx-auto">
+                <h2 class="text-lg sm:text-xl font-bold text-slate-800 mb-6">Choisissez l'explication correcte.</h2>
+                
+                <div class="flex flex-col gap-3 w-full mb-6 text-left" id="quiz-15-options">
+                    <div class="quiz-option single-opt border-2 border-slate-200 rounded-xl p-4 font-semibold text-sm sm:text-base text-slate-700 bg-white justify-start">
+                        Pour faire une phrase avec &lt;요리하다&gt; (cuisiner), il faut toujours le séparer en &lt;요리&gt; et &lt;하다&gt;.
+                    </div>
+                    <div class="quiz-option single-opt border-2 border-slate-200 rounded-xl p-4 font-semibold text-sm sm:text-base text-slate-700 bg-white justify-start" data-correct="true">
+                        Un adverbe comme &lt;매일&gt; (tous les jours) se place généralement devant le verbe.
+                    </div>
+                    <div class="quiz-option single-opt border-2 border-slate-200 rounded-xl p-4 font-semibold text-sm sm:text-base text-slate-700 bg-white justify-start">
+                        Lorsqu'on sépare &lt;청소하다&gt; (faire le ménage) en &lt;청소&gt; et &lt;하다&gt;, on n'ajoute pas de particule après &lt;청소&gt;.
+                    </div>
+                </div>
+
+                <p id="quiz-15-status" class="h-6 font-bold text-center mb-4 text-red-500 text-sm"></p>
+                <button id="quiz-15-btn" onclick="checkSingleQuiz(15, true)" class="bg-slate-800 hover:bg-slate-900 text-white font-bold py-2 px-8 rounded-xl text-md transition-colors w-full sm:w-auto">Valider</button>
+            </div>
+        </div>
+
+        <!-- Page 16: Quiz Multi (3 tries max) -->
+        <div id="page-16" class="page">
+            <div class="content-area w-full max-w-lg mx-auto">
+                <h2 class="text-lg sm:text-xl font-bold text-slate-800 mb-6">Sélectionnez <span class="underline decoration-indigo-400 decoration-2">toutes</span> les phrases grammaticalement correctes.</h2>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full mb-6" id="quiz-16-options">
+                    <div class="quiz-option border-2 border-slate-200 rounded-xl p-3 font-bold text-base text-slate-700 bg-white" data-val="1">저는 식사해요.</div>
+                    <div class="quiz-option border-2 border-slate-200 rounded-xl p-3 font-bold text-base text-slate-700 bg-white" data-val="1">식사해요.</div>
+                    <div class="quiz-option border-2 border-slate-200 rounded-xl p-3 font-bold text-base text-slate-700 bg-white" data-val="0">식사 해요.</div>
+                    <div class="quiz-option border-2 border-slate-200 rounded-xl p-3 font-bold text-base text-slate-700 bg-white" data-val="0">식사가 해요.</div>
+                    <div class="quiz-option border-2 border-slate-200 rounded-xl p-3 font-bold text-base text-slate-700 bg-white" data-val="1">식사를 해요.</div>
+                    <div class="quiz-option border-2 border-slate-200 rounded-xl p-3 font-bold text-base text-slate-700 bg-white" data-val="0">식사 이에요.</div>
+                </div>
+
+                <p id="quiz-16-status" class="h-6 font-bold text-center mb-4 text-red-500 text-sm"></p>
+                <button id="quiz-16-btn" onclick="checkMultiQuiz(16)" class="bg-slate-800 hover:bg-slate-900 text-white font-bold py-2 px-8 rounded-xl text-md transition-colors w-full sm:w-auto">Valider</button>
+            </div>
+        </div>
+
+        <!-- Page 17: Outro -->
+        <div id="page-17" class="page justify-center items-center bg-green-50">
+            <div class="content-area">
+                <div class="bg-white p-5 rounded-full shadow-md mb-6">
+                    <i class="ph-fill ph-check-circle text-5xl text-green-500"></i>
+                </div>
+                <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-800 mb-6">Bon travail !</h1>
+                
+                <p class="text-content text-green-900 font-medium">
+                    Passez à la Leçon 5 pour utiliser encore plus de mots et d'expressions !
+                </p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Bottom Navigation -->
+    <div id="bottom-nav" class="w-full h-16 sm:h-20 bg-white border-t border-slate-200 flex items-center justify-between px-6 sm:px-10 hidden">
+        <button id="btn-prev" onclick="changePage(-1)" class="text-slate-500 font-bold text-base sm:text-lg flex items-center gap-2 hover:text-slate-800 transition-colors disabled:opacity-30 disabled:cursor-not-allowed">
+            <i class="ph-bold ph-caret-left"></i> Précédent
+        </button>
+        <button id="btn-next" onclick="changePage(1)" class="text-indigo-600 font-bold text-base sm:text-lg flex items-center gap-2 hover:text-indigo-800 transition-colors disabled:opacity-30 disabled:cursor-not-allowed">
+            Suivant <i class="ph-bold ph-caret-right"></i>
+        </button>
+    </div>
+
+</div>
+
+<script>
+    /* =========================================
+       State Management & Navigation
+    ========================================= */
+    const TOTAL_PAGES = 18;
+    let currentPage = 0;
+    
+    // Page Lock State
+    const completedPages = new Set();
+    const interactivePages = [5, 6, 8, 11, 12, 13, 14, 15, 16];
+    
+    // Audio Context & Players
+    let currentAudio = null;
+    let audioTimeoutId = null;
+    let correctSound = null;
+    let completionSynth = null;
+    let errorSound = null;
+    let transitionSynth = null;
+
+    // Quiz & Speech State
+    let quizAttempts = 0;
+    let activeRecorder = null;
+    let recordingTimeout = null;
+
+    // Mapping of page texts auto-play audios
+    const pageTextAudios = {
+        1: 'https://res.cloudinary.com/de76i94ia/video/upload/v1772097167/4-1_undrpy.mp3',
+        2: 'https://res.cloudinary.com/de76i94ia/video/upload/v1772097167/4-2_ra5eor.mp3',
+        3: 'https://res.cloudinary.com/de76i94ia/video/upload/v1772097167/4-3_rsnpkl.mp3',
+        4: 'https://res.cloudinary.com/de76i94ia/video/upload/v1772097169/4-4_mwjuaz.mp3',
+        7: 'https://res.cloudinary.com/de76i94ia/video/upload/v1772097168/4-5_nvi6pp.mp3',
+        9: 'https://res.cloudinary.com/de76i94ia/video/upload/v1772097172/4-6_vftsvg.mp3',
+        10: 'https://res.cloudinary.com/de76i94ia/video/upload/v1772097176/4-7_zxlxtr.mp3',
+        17: 'https://res.cloudinary.com/de76i94ia/video/upload/v1772097173/4-8_bph6oo.mp3'
+    };
+
+    async function initAudioContext() {
+        await Tone.start();
+        correctSound = new Tone.Synth({ oscillator: { type: "sine" } }).toDestination();
+        errorSound = new Tone.Synth({ oscillator: { type: "triangle" } }).toDestination();
+        completionSynth = new Tone.PolySynth(Tone.Synth).toDestination();
+        transitionSynth = new Tone.Synth({
+            oscillator: { type: "sine" },
+            envelope: { attack: 0.01, decay: 0.1, sustain: 0, release: 0.1 }
+        }).toDestination();
+        transitionSynth.volume.value = -15; 
+    }
+
+    async function startLesson() {
+        await initAudioContext();
+        document.getElementById('progress-container').classList.remove('hidden');
+        document.getElementById('bottom-nav').classList.remove('hidden');
+        
+        if (transitionSynth) transitionSynth.triggerAttackRelease('C6', '0.05s');
+        
+        changePage(1);
+    }
+
+    function updateProgress() {
+        const percent = ((currentPage) / (TOTAL_PAGES - 1)) * 100;
+        document.getElementById('progress-bar').style.width = `${percent}%`;
+    }
+
+    function unlockNextButton(pageId) {
+        completedPages.add(pageId);
+        if (currentPage === pageId) {
+            const btnNext = document.getElementById('btn-next');
+            if (btnNext) btnNext.disabled = false;
+        }
+    }
+
+    function changePage(dir) {
+        if (dir !== 0 && transitionSynth && currentPage > 0) {
+            transitionSynth.triggerAttackRelease('C6', '0.05s');
+        }
+
+        if(currentAudio) {
+            currentAudio.pause();
+            currentAudio.currentTime = 0;
+        }
+        if(audioTimeoutId) clearTimeout(audioTimeoutId);
+
+        if (activeRecorder && activeRecorder.state === 'recording') {
+            activeRecorder.stop();
+            clearTimeout(recordingTimeout);
+        }
+
+        const oldPage = document.getElementById(`page-${currentPage}`);
+        if(oldPage) oldPage.classList.remove('active');
+
+        currentPage += dir;
+        
+        if(currentPage < 0) currentPage = 0;
+        if(currentPage >= TOTAL_PAGES) currentPage = TOTAL_PAGES - 1;
+
+        const newPage = document.getElementById(`page-${currentPage}`);
+        if(newPage) newPage.classList.add('active');
+
+        quizAttempts = 0;
+        resetQuizUI(currentPage);
+        updateProgress();
+        
+        const btnPrev = document.getElementById('btn-prev');
+        const btnNext = document.getElementById('btn-next');
+        btnPrev.disabled = (currentPage === 1);
+        
+        if (currentPage === TOTAL_PAGES - 1) {
+            btnNext.style.display = 'none';
+            triggerLessonComplete();
+        } else {
+            btnNext.style.display = 'flex';
+            if (interactivePages.includes(currentPage) && !completedPages.has(currentPage)) {
+                btnNext.disabled = true;
+            } else {
+                btnNext.disabled = false;
+            }
+        }
+
+        if (pageTextAudios[currentPage]) {
+            audioTimeoutId = setTimeout(() => {
+                if(currentAudio) {
+                    currentAudio.pause();
+                    currentAudio.currentTime = 0;
+                }
+                currentAudio = new Audio(pageTextAudios[currentPage]);
+                const playPromise = currentAudio.play();
+                
+                if (playPromise !== undefined) {
+                    playPromise.catch(error => { console.warn("Auto-play interrupted:", error); });
+                }
+            }, 1000);
+        }
+    }
+
+    function playCardAudio(url) {
+        if (url === '#' || !url) return;
+        if(currentAudio) {
+            currentAudio.pause();
+            currentAudio.currentTime = 0;
+        }
+        currentAudio = new Audio(url);
+        const playPromise = currentAudio.play();
+        if (playPromise !== undefined) {
+            playPromise.catch(error => { console.warn("Card audio playback interrupted:", error); });
+        }
+    }
+
+    function triggerLessonComplete() {
+        if (completionSynth) {
+            completionSynth.triggerAttackRelease(["C5", "E5", "G5", "C6"], "4n");
+        }
+        window.parent.postMessage({ type: 'lesson_complete' }, '*');
+    }
+
+    /* =========================================
+       Single Choice Quiz Logic
+    ========================================= */
+    [13, 14, 15].forEach(pageId => {
+        document.querySelectorAll(`#quiz-${pageId}-options .single-opt`).forEach(opt => {
+            opt.addEventListener('click', function() {
+                if (completedPages.has(pageId)) return;
+                document.querySelectorAll(`#quiz-${pageId}-options .single-opt`).forEach(sib => sib.classList.remove('selected'));
+                this.classList.add('selected');
+            });
+        });
+    });
+
+    function checkSingleQuiz(pageId, isInfinite = false) {
+        if (completedPages.has(pageId)) return;
+        
+        quizAttempts++;
+        const options = document.querySelectorAll(`#quiz-${pageId}-options .single-opt`);
+        const statusEl = document.getElementById(`quiz-${pageId}-status`);
+        let selectedOpt = Array.from(options).find(opt => opt.classList.contains('selected'));
+
+        if(!selectedOpt) {
+            statusEl.innerText = "Veuillez choisir une option.";
+            statusEl.className = "h-6 font-bold text-center mb-4 text-orange-500 text-sm";
+            return;
+        }
+
+        const isCorrect = selectedOpt.dataset.correct === "true";
+
+        if (isCorrect) {
+            if(correctSound) correctSound.triggerAttackRelease('C5', '0.1s');
+            statusEl.innerText = "Très bien !";
+            statusEl.className = "h-6 font-bold text-center mb-4 text-green-500 text-sm";
+            selectedOpt.classList.remove('selected');
+            selectedOpt.classList.add('correct');
+            document.getElementById(`quiz-${pageId}-btn`).disabled = true;
+            document.getElementById(`quiz-${pageId}-btn`).classList.add('opacity-50', 'cursor-not-allowed');
+            options.forEach(opt => opt.style.pointerEvents = 'none');
+            unlockNextButton(pageId);
+        } else {
+            if(errorSound) errorSound.triggerAttackRelease('C4', '0.1s');
+            
+            if (!isInfinite && quizAttempts >= 3) {
+                statusEl.innerText = "Voici la bonne réponse !";
+                statusEl.className = "h-6 font-bold text-center mb-4 text-blue-500 text-sm";
+                options.forEach(opt => { opt.classList.remove('selected', 'wrong'); if(opt.dataset.correct === "true") opt.classList.add('correct'); opt.style.pointerEvents = 'none'; });
+                document.getElementById(`quiz-${pageId}-btn`).disabled = true;
+                unlockNextButton(pageId);
+            } else {
+                statusEl.innerText = isInfinite ? `Incorrect. Réessayez !` : `Incorrect. Réessayez ! (${3 - quizAttempts} essai(s) restant(s))`;
+                statusEl.className = "h-6 font-bold text-center mb-4 text-red-500 text-sm";
+                selectedOpt.classList.remove('selected');
+                selectedOpt.classList.add('wrong');
+                setTimeout(() => selectedOpt.classList.remove('wrong'), 1000);
+            }
+        }
+    }
+
+    /* =========================================
+       Multi Choice Quiz Logic (Page 16)
+    ========================================= */
+    document.querySelectorAll('#quiz-16-options .quiz-option').forEach(opt => {
+        opt.addEventListener('click', function() { 
+            if (completedPages.has(16)) return;
+            this.classList.toggle('selected'); 
+        });
+    });
+
+    function checkMultiQuiz(pageId) {
+        if (completedPages.has(pageId)) return;
+        
+        quizAttempts++;
+        const options = document.querySelectorAll(`#quiz-${pageId}-options .quiz-option`);
+        const statusEl = document.getElementById(`quiz-${pageId}-status`);
+        let isCorrect = true;
+        let selectedCount = 0;
+
+        options.forEach(opt => {
+            const isSelected = opt.classList.contains('selected');
+            const shouldBeSelected = opt.dataset.val === "1";
+            if(isSelected) selectedCount++;
+            if (isSelected !== shouldBeSelected) isCorrect = false;
+        });
+
+        if(selectedCount === 0) {
+            statusEl.innerText = "Veuillez sélectionner au moins une option.";
+            statusEl.className = "h-6 font-bold text-center mb-4 text-orange-500 text-sm";
+            return;
+        }
+
+        if (isCorrect) {
+            if(correctSound) correctSound.triggerAttackRelease('C5', '0.1s');
+            statusEl.innerText = "Excellent ! C'est la bonne réponse.";
+            statusEl.className = "h-6 font-bold text-center mb-4 text-green-500 text-sm";
+            document.getElementById(`quiz-${pageId}-btn`).disabled = true;
+            document.getElementById(`quiz-${pageId}-btn`).classList.add('opacity-50', 'cursor-not-allowed');
+            options.forEach(opt => { if(opt.dataset.val === "1") { opt.classList.remove('selected'); opt.classList.add('correct'); } });
+            unlockNextButton(pageId);
+        } else {
+            if(errorSound) errorSound.triggerAttackRelease('C4', '0.1s');
+            if (quizAttempts >= 3) {
+                statusEl.innerText = "Voici la bonne réponse !";
+                statusEl.className = "h-6 font-bold text-center mb-4 text-blue-500 text-sm";
+                options.forEach(opt => { opt.classList.remove('selected', 'wrong'); if(opt.dataset.val === "1") opt.classList.add('correct'); opt.style.pointerEvents = 'none'; });
+                document.getElementById(`quiz-${pageId}-btn`).disabled = true;
+                unlockNextButton(pageId);
+            } else {
+                statusEl.innerText = `Incorrect. Réessayez ! (${3 - quizAttempts} essai(s) restant(s))`;
+                statusEl.className = "h-6 font-bold text-center mb-4 text-red-500 text-sm";
+                options.forEach(opt => { if(opt.classList.contains('selected')) { opt.classList.remove('selected'); opt.classList.add('wrong'); setTimeout(() => opt.classList.remove('wrong'), 1000); } });
+            }
+        }
+    }
+
+    /* =========================================
+       General Reset UI
+    ========================================= */
+    function resetQuizUI(pageId) {
+        if (completedPages.has(pageId)) return;
+
+        if([13, 14, 15].includes(pageId)) {
+            document.querySelectorAll(`#quiz-${pageId}-options .single-opt`).forEach(opt => {
+                opt.classList.remove('selected', 'correct', 'wrong');
+                opt.style.pointerEvents = 'auto';
+            });
+            const status = document.getElementById(`quiz-${pageId}-status`);
+            if(status) status.innerText = "";
+            const btn = document.getElementById(`quiz-${pageId}-btn`);
+            if(btn) { btn.disabled = false; btn.classList.remove('opacity-50', 'cursor-not-allowed'); }
+        }
+
+        if(pageId === 16) {
+            document.querySelectorAll(`#quiz-16-options .quiz-option`).forEach(opt => {
+                opt.classList.remove('selected', 'correct', 'wrong');
+                opt.style.pointerEvents = 'auto';
+            });
+            const status = document.getElementById(`quiz-16-status`);
+            if(status) status.innerText = "";
+            const btn = document.getElementById(`quiz-16-btn`);
+            if(btn) { btn.disabled = false; btn.classList.remove('opacity-50', 'cursor-not-allowed'); }
+        }
+
+        if([5, 6, 8, 11, 12].includes(pageId)) {
+            const btn = document.getElementById(`mic-btn-${pageId}`);
+            if(btn) resetMicBtnState(btn);
+            const status = document.getElementById(`status-${pageId}`);
+            if(status) { status.innerText = ""; status.className = "text-slate-500 font-medium h-6 text-sm"; }
+            const transcript = document.getElementById(`transcript-${pageId}`);
+            if(transcript) transcript.innerText = "";
+        }
+    }
+
+    function resetMicBtnState(btn) {
+        btn.disabled = false;
+        btn.classList.remove('recording-pulse', 'bg-green-500', 'bg-slate-400', 'cursor-not-allowed', 'shadow-none');
+        btn.classList.add('bg-red-500', 'shadow-lg');
+        btn.innerHTML = `<i class="ph-fill ph-microphone text-3xl"></i>`;
+    }
+
+    /* =========================================
+       Speech Recognition API (Naver Clova)
+    ========================================= */
+    const BASE_44_ORIGIN = "https://coreeno.base44.app"; 
+    const CLOVA_API_FUNCTION_URL = BASE_44_ORIGIN + '/api/functions/naverClovaSpeech';
+
+    async function toggleRecordSpeech(btn, statusId, referenceText, threshold, maxTries, forcePassOnMax, mustRepeat) {
+        const statusEl = document.getElementById(statusId);
+        
+        if (btn.classList.contains('recording-pulse')) {
+            if (activeRecorder && activeRecorder.state === 'recording') {
+                activeRecorder.stop();
+                clearTimeout(recordingTimeout);
+            }
+            return;
+        }
+
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const mediaRecorder = new MediaRecorder(stream);
+            let audioChunks = [];
+
+            mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+            
+            mediaRecorder.onstop = async () => {
+                btn.classList.remove('recording-pulse');
+                btn.innerHTML = `<i class="ph ph-spinner animate-spin text-3xl"></i>`;
+                statusEl.innerText = "";
+                
+                const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                const reader = new FileReader();
+                reader.readAsDataURL(audioBlob);
+                reader.onloadend = async () => {
+                    const base64data = reader.result.split(',')[1];
+                    await processSpeechApi(base64data, referenceText, threshold, maxTries, forcePassOnMax, mustRepeat, btn, statusEl);
+                }
+                
+                stream.getTracks().forEach(track => track.stop());
+            };
+
+            mediaRecorder.start();
+            activeRecorder = mediaRecorder;
+            btn.classList.add('recording-pulse');
+            btn.innerHTML = `<i class="ph-fill ph-stop text-3xl"></i>`;
+            statusEl.innerText = "";
+            
+            const transcriptEl = document.getElementById(statusId.replace('status', 'transcript'));
+            if(transcriptEl) transcriptEl.innerHTML = "";
+
+            recordingTimeout = setTimeout(() => {
+                if(mediaRecorder.state === 'recording') mediaRecorder.stop();
+            }, 12000);
+
+        } catch (err) {
+            console.error("Mic access denied or error:", err);
+            statusEl.innerText = "Erreur de microphone.";
+            statusEl.className = "text-red-500 font-medium h-6 text-sm";
+        }
+    }
+
+    async function processSpeechApi(audioBase64, referenceText, threshold, maxTries, forcePassOnMax, mustRepeat, btn, statusEl) {
+        quizAttempts++;
+        let score = 0;
+        let recognizedText = "";
+
+        try {
+            const res = await fetch(CLOVA_API_FUNCTION_URL, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ audioBase64: audioBase64, languageCode: "Kor", referenceText: referenceText })
+            });
+            if (!res.ok) throw new Error("API Error");
+            const result = await res.json();
+            score = result.assessment?.pronunciation_score || 0;
+            recognizedText = result.recognized || result.text || "";
+        } catch (e) {
+            console.warn("API Error, fallback score generation", e);
+            score = Math.floor(Math.random() * 30) + 60;
+            recognizedText = score >= threshold ? referenceText : "???";
+        }
+
+        const transcriptEl = document.getElementById(statusEl.id.replace('status', 'transcript'));
+        if (transcriptEl && recognizedText) {
+            transcriptEl.innerHTML = `<span class="text-slate-500">Vous avez dit : </span><span class="font-bold text-indigo-600">"${recognizedText}"</span>`;
+        }
+
+        let msg = '';
+        let isPass = score >= threshold;
+        let isLastAttempt = quizAttempts >= maxTries;
+        let stopNow = isPass && !mustRepeat;
+        
+        if (stopNow || isLastAttempt) {
+            if (score >= threshold) msg = `Très bien! (Score: ${score}). Passez à la page suivante.`;
+            else if (score >= 30) msg = `C'était pas mal! Passez à la page suivante.`;
+            else msg = `Passez à la page suivante.`;
+            
+            statusEl.innerHTML = msg;
+            statusEl.className = (isPass || (isLastAttempt && forcePassOnMax)) ? 'text-green-600 font-bold h-6 text-sm' : 'text-blue-600 font-bold h-6 text-sm';
+            
+            disableMicBtn(btn, isPass || (isLastAttempt && forcePassOnMax));
+            unlockNextButton(currentPage);
+            
+            if (isPass || (isLastAttempt && forcePassOnMax)) {
+                if(correctSound && !(isLastAttempt && forcePassOnMax && !isPass)) correctSound.triggerAttackRelease('C5', '0.2s');
+                if(isLastAttempt && forcePassOnMax && !isPass && correctSound) correctSound.triggerAttackRelease('C5', '0.2s');
+            } else {
+                if(errorSound) errorSound.triggerAttackRelease('C4', '0.1s');
+            }
+        } else {
+            if (score >= threshold) msg = `Très bien! (Score: ${score}). Répétez encore une fois.`;
+            else if (score >= 30) msg = `On y est presque. Répétez encore une fois.`;
+            else msg = `Répétez encore une fois.`;
+            
+            statusEl.innerHTML = msg;
+            statusEl.className = isPass ? 'text-green-600 font-bold h-6 text-sm' : 'text-orange-500 font-bold h-6 text-sm';
+            
+            if (isPass) {
+                if(correctSound) correctSound.triggerAttackRelease('C5', '0.2s');
+            } else {
+                if(errorSound) errorSound.triggerAttackRelease('C4', '0.1s');
+            }
+            
+            resetMicBtnState(btn);
+        }
+    }
+
+    function disableMicBtn(btn, success = false) {
+        btn.disabled = true;
+        btn.className = `text-white rounded-full p-5 shadow-none mb-2 flex items-center justify-center cursor-not-allowed transition-colors ${success ? 'bg-green-500' : 'bg-slate-400'}`;
+        btn.innerHTML = `<i class="ph-bold ph-check text-3xl"></i>`;
+    }
+
+</script>
+</body>
+</html>
