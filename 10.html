@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Leçon 10 - Le monologue de Yuna</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- Tone.js for Sound Effects -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+
+    <style>
+        /* CSS Reset & Strict No-Scroll Constraints */
+        html, body {
+            margin: 0; padding: 0;
+            width: 100vw; height: 100vh;
+            overflow: hidden;
+            background-color: #f1f5f9;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            touch-action: none;
+        }
+
+        /* Full Screen Flex Container */
+        #app-container {
+            width: 100%;
+            height: 100%;
+            background-color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        #progress-container {
+            flex-shrink: 0;
+        }
+
+        /* Pages Wrapper */
+        #pages-wrapper {
+            flex: 1;
+            position: relative;
+            width: 100%;
+            display: flex;
+            overflow: hidden;
+        }
+
+        .page {
+            display: none;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+        .page.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Content Area */
+        .content-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 1.5rem;
+            text-align: center;
+            min-h: 0;
+            overflow-y: auto;
+        }
+
+        /* Pulse Animation for Recording */
+        .recording-pulse {
+            animation: pulse-red 1.5s infinite;
+        }
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+
+        /* Quiz Options */
+        .quiz-option {
+            transition: all 0.2s;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+        .quiz-option.selected {
+            background-color: #e0e7ff;
+            border-color: #6366f1;
+            color: #4338ca;
+        }
+        .quiz-option.correct {
+            background-color: #dcfce7;
+            border-color: #22c55e;
+            color: #15803d;
+        }
+        .quiz-option.wrong {
+            background-color: #fee2e2;
+            border-color: #ef4444;
+            color: #b91c1c;
+        }
+
+        /* Cloze Builder Words */
+        .builder-word {
+            transition: all 0.2s ease;
+            cursor: pointer;
+            user-select: none;
+        }
+        .builder-word:active {
+            transform: scale(0.95);
+        }
+        
+        /* Cloze Slots */
+        .cloze-slot {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 4rem;
+            height: 2rem;
+            margin: 0 0.2rem;
+            border-bottom: 2px solid #94a3b8;
+            background-color: #f8fafc;
+            border-radius: 0.25rem;
+            color: #4338ca;
+            font-weight: 700;
+            vertical-align: middle;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.95rem;
+        }
+        .cloze-slot.filled {
+            border-bottom-color: #6366f1;
+            background-color: #e0e7ff;
+        }
+        .cloze-slot.locked {
+            border-bottom-color: #22c55e;
+            background-color: #dcfce7;
+            color: #15803d;
+            cursor: default;
+        }
+    </style>
+</head>
+<body>
+
+<div id="app-container">
+    
+    <!-- Top Progress Bar -->
+    <div id="progress-container" class="w-full h-2 bg-slate-100">
+        <div id="progress-bar" class="h-full bg-indigo-500 transition-all duration-300 w-0"></div>
+    </div>
+
+    <!-- Pages Container -->
+    <div id="pages-wrapper">
+
+        <!-- Page 0: Cover -->
+        <div id="page-0" class="page active justify-center items-center bg-indigo-50">
+            <div class="content-area">
+                <p class="text-indigo-600 font-semibold mb-2 text-lg">Chapitre 5 - Les activités</p>
+                <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-800 mb-10">Leçon 10 - Le monologue de Yuna</h1>
+                <button onclick="startLesson()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-10 rounded-full text-xl shadow-lg transition-transform transform hover:-translate-y-1 active:translate-y-0 flex items-center gap-3">
+                    <i class="ph-fill ph-play-circle text-2xl"></i>
+                    Commencer
+                </button>
+            </div>
+        </div>
+
+        <!-- Page 1: Intro Text -->
+        <div id="page-1" class="page">
+            <div class="content-area">
+                <div class="flex flex-col items-center justify-center w-full max-w-lg gap-8">
+                    <p class="text-slate-800 text-lg sm:text-xl font-medium leading-relaxed">
+                        Écoutez attentivement l'histoire de Yuna.<br><br>
+                        Il y a des questions pendant le monologue. Quand une fenêtre apparaît, choisissez la bonne réponse.
+                    </p>
+                    <button onclick="changePage(1)" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-10 rounded-full text-xl shadow-lg transition-transform transform hover:scale-105 active:scale-95">
+                        C’est parti !
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Page 2: Listening 1 -->
+        <div id="page-2" class="page">
+            <div class="content-area">
+                <!-- flex-col with gap-6 ensures EQUAL spacing between every single element -->
+                <div class="flex flex-col items-center w-full max-w-lg gap-6">
+                    
+                    <!-- Transcript (Hidden initially, shown above audio) -->
+                    <div id="transcript-area-2" class="w-full bg-slate-50 p-4 rounded-xl border border-slate-200 text-sm opacity-0 transition-opacity duration-500 hidden text-center shadow-sm">
+                        <p id="kr-text-2" class="font-bold text-slate-800 hidden">안녕하세요, 저는 유나예요. 저는 학생이에요.</p>
+                        <p id="fr-text-2" class="text-slate-600 hidden mt-1">Bonjour, je suis Yuna. Je suis étudiante.</p>
+                    </div>
+
+                    <!-- Audio Button -->
+                    <button onclick="playDelayedQuizAudio(2, 'https://res.cloudinary.com/de76i94ia/video/upload/v1773154466/10-1_o56mhj.mp3')" class="bg-indigo-100 text-indigo-600 rounded-full hover:bg-indigo-200 transition-colors shadow-sm flex items-center justify-center shrink-0 w-14 h-14">
+                        <i id="audio-icon-2" class="ph-fill ph-speaker-high text-2xl"></i>
+                    </button>
+
+                    <!-- Quiz Area (Hidden initially via opacity, but takes layout space so elements don't jump) -->
+                    <div id="quiz-area-2" class="flex flex-col items-center w-full gap-6 opacity-0 transition-opacity duration-500 pointer-events-none">
+                        
+                        <!-- Consigne -->
+                        <h3 class="text-lg sm:text-xl font-bold text-slate-800 text-center w-full">Comment elle s’appelle ?</h3>
+                        
+                        <!-- Options -->
+                        <div class="flex flex-row justify-center gap-4 w-full" id="quiz-options-2">
+                            <div class="quiz-option flex-1 border-2 border-slate-200 rounded-xl p-3 sm:p-4 font-bold text-slate-700 bg-white" data-val="1">유나</div>
+                            <div class="quiz-option flex-1 border-2 border-slate-200 rounded-xl p-3 sm:p-4 font-bold text-slate-700 bg-white" data-val="0">현아</div>
+                        </div>
+                        
+                        <!-- Valider & Status -->
+                        <div class="w-full flex flex-col items-center gap-2">
+                            <p id="quiz-status-2" class="font-bold text-center text-sm leading-tight empty:hidden"></p>
+                            <button id="quiz-btn-2" onclick="checkComprehension(2)" class="bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 px-8 rounded-xl text-base transition-colors w-full sm:w-auto">Valider</button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Page 3: Listening 2 -->
+        <div id="page-3" class="page">
+            <div class="content-area">
+                <div class="flex flex-col items-center w-full max-w-lg gap-6">
+                    
+                    <!-- Transcript -->
+                    <div id="transcript-area-3" class="w-full bg-slate-50 p-4 rounded-xl border border-slate-200 text-sm opacity-0 transition-opacity duration-500 hidden text-center shadow-sm">
+                        <p id="kr-text-3" class="font-bold text-slate-800 hidden">저는 아침에 공부해요. 그리고 운동을 해요.</p>
+                        <p id="fr-text-3" class="text-slate-600 hidden mt-1">J’étudie le matin. Et je fais de l’exercice.</p>
+                    </div>
+
+                    <!-- Audio Button -->
+                    <button onclick="playDelayedQuizAudio(3, 'https://res.cloudinary.com/de76i94ia/video/upload/v1773154466/10-2_dsi1fj.mp3')" class="bg-indigo-100 text-indigo-600 rounded-full hover:bg-indigo-200 transition-colors shadow-sm flex items-center justify-center shrink-0 w-14 h-14">
+                        <i id="audio-icon-3" class="ph-fill ph-speaker-high text-2xl"></i>
+                    </button>
+
+                    <!-- Quiz Area -->
+                    <div id="quiz-area-3" class="flex flex-col items-center w-full gap-6 opacity-0 transition-opacity duration-500 pointer-events-none">
+                        
+                        <h3 class="text-lg sm:text-xl font-bold text-slate-800 text-center w-full">Qu'est-ce qu'elle fait d'abord ?</h3>
+                        
+                        <div class="flex flex-row justify-center gap-4 w-full" id="quiz-options-3">
+                            <div class="quiz-option flex-1 border-2 border-slate-200 rounded-xl p-3 sm:p-4 font-bold text-slate-700 bg-white" data-val="1">étudier</div>
+                            <div class="quiz-option flex-1 border-2 border-slate-200 rounded-xl p-3 sm:p-4 font-bold text-slate-700 bg-white" data-val="0">faire de l’exercice</div>
+                        </div>
+                        
+                        <div class="w-full flex flex-col items-center gap-2">
+                            <p id="quiz-status-3" class="font-bold text-center text-sm leading-tight empty:hidden"></p>
+                            <button id="quiz-btn-3" onclick="checkComprehension(3)" class="bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 px-8 rounded-xl text-base transition-colors w-full sm:w-auto">Valider</button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Page 4: Listening 3 -->
+        <div id="page-4" class="page">
+            <div class="content-area">
+                <div class="flex flex-col items-center w-full max-w-lg gap-6">
+                    
+                    <!-- Transcript -->
+                    <div id="transcript-area-4" class="w-full bg-slate-50 p-4 rounded-xl border border-slate-200 text-sm opacity-0 transition-opacity duration-500 hidden text-center shadow-sm">
+                        <p id="kr-text-4" class="font-bold text-slate-800 hidden">저는 매일 저녁에 요리를 해요. 하지만 오늘은 저녁에 식사를 안 해요.</p>
+                        <p id="fr-text-4" class="text-slate-600 hidden mt-1">Je cuisine tous les soirs. Mais aujourd’hui, je ne prends pas le repas le soir.</p>
+                    </div>
+
+                    <!-- Audio Button -->
+                    <button onclick="playDelayedQuizAudio(4, 'https://res.cloudinary.com/de76i94ia/video/upload/v1773154466/10-3_zwebap.mp3')" class="bg-indigo-100 text-indigo-600 rounded-full hover:bg-indigo-200 transition-colors shadow-sm flex items-center justify-center shrink-0 w-14 h-14">
+                        <i id="audio-icon-4" class="ph-fill ph-speaker-high text-2xl"></i>
+                    </button>
+
+                    <!-- Quiz Area -->
+                    <div id="quiz-area-4" class="flex flex-col items-center w-full gap-6 opacity-0 transition-opacity duration-500 pointer-events-none">
+                        
+                        <h3 class="text-lg sm:text-xl font-bold text-slate-800 text-center w-full">Va-t-elle dîner ce soir ?</h3>
+                        
+                        <div class="flex flex-row justify-center gap-4 w-full" id="quiz-options-4">
+                            <div class="quiz-option flex-1 border-2 border-slate-200 rounded-xl p-3 sm:p-4 font-bold text-slate-700 bg-white" data-val="0">네</div>
+                            <div class="quiz-option flex-1 border-2 border-slate-200 rounded-xl p-3 sm:p-4 font-bold text-slate-700 bg-white" data-val="1">아니요</div>
+                        </div>
+                        
+                        <div class="w-full flex flex-col items-center gap-2">
+                            <p id="quiz-status-4" class="font-bold text-center text-sm leading-tight empty:hidden"></p>
+                            <button id="quiz-btn-4" onclick="checkComprehension(4)" class="bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 px-8 rounded-xl text-base transition-colors w-full sm:w-auto">Valider</button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Page 5: Cloze Text (Fill in the blanks) -->
+        <div id="page-5" class="page">
+            <div class="content-area">
+                <div class="flex flex-col items-center w-full max-w-lg gap-6">
+                    
+                    <!-- Audio Button -->
+                    <button onclick="playCardAudio('https://res.cloudinary.com/de76i94ia/video/upload/v1773154466/10-all_fzuibe.mp3')" class="bg-indigo-100 text-indigo-600 rounded-full hover:bg-indigo-200 transition-colors shadow-sm flex items-center justify-center shrink-0 w-14 h-14">
+                        <i class="ph-fill ph-speaker-high text-2xl"></i>
+                    </button>
+
+                    <!-- Consigne -->
+                    <h2 class="text-lg sm:text-xl font-bold text-slate-800 text-center w-full">Écoutez et remplissez les blancs.</h2>
+
+                    <!-- Cloze Text Area -->
+                    <div id="cloze-container-5" class="bg-white border-2 border-slate-200 rounded-2xl p-5 w-full text-left leading-[2.5rem] text-slate-800 text-sm sm:text-base shadow-sm">
+                        <!-- Javascript will render the text and slots here -->
+                    </div>
+
+                    <!-- Word Bank Area -->
+                    <div id="cloze-bank-5" class="flex flex-wrap justify-center gap-2 w-full"></div>
+
+                    <!-- Valider -->
+                    <div class="w-full flex flex-col items-center gap-2">
+                        <p id="cloze-status-5" class="font-bold text-center text-sm leading-tight empty:hidden"></p>
+                        <button id="cloze-btn-5" onclick="checkClozeQuiz()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 px-8 rounded-xl text-base transition-colors w-full sm:w-auto">Valider</button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Page 6: Multi-step Speaking -->
+        <div id="page-6" class="page">
+            <div class="content-area">
+                <div class="flex flex-col items-center w-full max-w-lg gap-6">
+                    
+                    <!-- Consigne -->
+                    <h2 class="text-lg sm:text-xl font-bold text-slate-800 text-center w-full">Dites-le en coréen.</h2>
+                    
+                    <!-- Card Area -->
+                    <div class="bg-white border-2 border-slate-200 shadow-md rounded-3xl p-6 sm:p-8 w-full max-w-sm flex flex-col items-center justify-center relative min-h-[8rem]">
+                        
+                        <!-- Progress Dots -->
+                        <div class="absolute top-3 flex gap-1.5" id="step-dots-6">
+                            <div class="w-2 h-2 rounded-full bg-indigo-600"></div>
+                            <div class="w-2 h-2 rounded-full bg-slate-300"></div>
+                            <div class="w-2 h-2 rounded-full bg-slate-300"></div>
+                            <div class="w-2 h-2 rounded-full bg-slate-300"></div>
+                        </div>
+
+                        <!-- French Phrase -->
+                        <h3 id="step-fr-text-6" class="text-lg sm:text-xl font-black text-slate-700 text-center leading-tight mt-2"></h3>
+                        
+                        <!-- Hints -->
+                        <div class="flex flex-col items-center justify-center w-full mt-3 gap-1">
+                            <p id="step-hint-text-6" class="text-indigo-500 font-bold text-sm sm:text-base hidden text-center"></p>
+                            <p id="step-ans-text-6" class="text-green-600 font-bold text-sm sm:text-base hidden text-center"></p>
+                        </div>
+                    </div>
+
+                    <!-- Mic Area -->
+                    <div class="flex flex-col items-center gap-3 w-full">
+                        
+                        <!-- Mic Button -->
+                        <button id="mic-btn-6" onclick="toggleRecordSpeechStep(this)" class="bg-red-500 text-white rounded-full flex items-center justify-center w-16 h-16 shadow-xl transition-transform hover:scale-105 active:scale-95">
+                            <i class="ph-fill ph-microphone text-3xl"></i>
+                        </button>
+                        
+                        <!-- Next Step Button (Hidden initially) -->
+                        <button id="step-next-btn-6" onclick="nextSpeakingStep()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-10 rounded-full text-base shadow-lg transition-transform hover:scale-105 active:scale-95 hidden">
+                            Suivant
+                        </button>
+
+                        <div class="flex flex-col items-center min-h-[3rem] w-full">
+                            <p id="transcript-6" class="text-slate-700 text-sm sm:text-base leading-tight text-center mb-1"></p>
+                            <p id="status-6" class="text-slate-600 font-medium text-sm leading-tight text-center"></p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Page 7: Outro -->
+        <div id="page-7" class="page justify-center items-center bg-green-50">
+            <div class="content-area">
+                <div class="bg-white p-5 rounded-full shadow-md mb-6">
+                    <i class="ph-fill ph-rocket-launch text-5xl text-indigo-500"></i>
+                </div>
+                <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-800 mb-6">Woohoo !</h1>
+                
+                <p class="text-content text-green-900 font-medium font-bold text-lg">
+                    Vous comprenez ET parlez coréen ! C'est un grand progrès 🚀
+                </p>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    /* =========================================
+       State Management & Navigation
+    ========================================= */
+    const TOTAL_PAGES = 8;
+    let currentPage = 0;
+    
+    // Page Lock State
+    const completedPages = new Set();
+    const interactivePages = [2, 3, 4, 5, 6];
+    
+    // Audio Context & Players
+    let currentAudio = null;
+    let audioTimeoutId = null;
+    let delayedQuizTimeoutId = null;
+    let correctSound = null;
+    let completionSynth = null;
+    let errorSound = null;
+    let transitionSynth = null;
+
+    // Quiz State
+    let quizAttempts = {};
+    let activeRecorder = null;
+    let recordingTimeout = null;
+
+    // Cloze Data (Page 5)
+    const clozeData = {
+        template: "안녕하세요, 저는 유나예요. 저는 [0]이에요. 저는 [1] 공부해요. 그리고 [2] 해요. 저는 [3] 저녁에 요리를 [4]. 하지만 오늘은 [5] 식사를 [6] 해요.",
+        options: ["오늘", "운동을", "매일", "아침", "학생", "아내", "예요", "아침에", "안", "못", "해요", "저녁에"],
+        answers: ["학생", "아침에", "운동을", "매일", "해요", "저녁에", "안"],
+        selected: [null, null, null, null, null, null, null],
+        locked: [false, false, false, false, false, false, false],
+        attempts: 0
+    };
+
+    // Speaking Steps Data (Page 6)
+    const speakSteps = [
+        {
+            fr: "Bonjour, je suis Yuna. Je suis étudiante.",
+            kr: "안녕하세요, 저는 유나예요. 저는 학생이에요.",
+            valid: ["안녕하세요저는유나예요저는학생이에요", "안녕저는유나예요저는학생이에요"],
+            hint: "",
+            failsToHint: 99,
+            failsToAns: 2
+        },
+        {
+            fr: "J’étudie le matin. Et je fais de l’exercice.",
+            kr: "저는 아침에 공부해요. 그리고 운동을 해요.",
+            valid: ["저는아침에공부해요그리고운동을해요", "저는아침에공부를해요그리고운동해요", "저는아침에공부를해요그리고운동을해요", "저는아침에공부해요그리고운동해요"],
+            hint: "Indice : Et 그리고",
+            failsToHint: 1,
+            failsToAns: 2
+        },
+        {
+            fr: "Je cuisine tous les soirs.",
+            kr: "저는 매일 저녁에 요리를 해요.",
+            valid: ["저는매일저녁에요리를해요", "저는매일저녁에요리해요"],
+            hint: "",
+            failsToHint: 99,
+            failsToAns: 2
+        },
+        {
+            fr: "Mais aujourd’hui, je ne prends pas le repas le soir.",
+            kr: "하지만 오늘은 저녁에 식사를 안 해요.",
+            valid: ["하지만오늘은저녁에식사를안해요", "하지만오늘저녁에는식사를안해요", "하지만오늘은저녁에식사안해요"],
+            hint: "Indice : Mais 하지만",
+            failsToHint: 1,
+            failsToAns: 2
+        }
+    ];
+    let currentSpeakStep = 0;
+    let speakStepAttempts = 0;
+
+    const BASE_44_ORIGIN = "https://coreeno.base44.app";
+    const CLOVA_API_FUNCTION_URL = BASE_44_ORIGIN + '/api/functions/naverClovaSpeech';
+
+    async function initAudioContext() {
+        await Tone.start();
+        correctSound = new Tone.Synth({ oscillator: { type: "sine" } }).toDestination();
+        errorSound = new Tone.Synth({ oscillator: { type: "triangle" } }).toDestination();
+        completionSynth = new Tone.PolySynth(Tone.Synth).toDestination();
+        transitionSynth = new Tone.Synth({
+            oscillator: { type: "sine" },
+            envelope: { attack: 0.01, decay: 0.1, sustain: 0, release: 0.1 }
+        }).toDestination();
+        transitionSynth.volume.value = -15; 
+    }
+
+    async function startLesson() {
+        await initAudioContext();
+        document.getElementById('progress-container').classList.remove('hidden');
+        
+        if (transitionSynth) transitionSynth.triggerAttackRelease('C6', '0.05s');
+        
+        renderClozeBank();
+        renderClozeSentence();
+        renderSpeakingStep(0);
+
+        changePage(1);
+    }
+
+    function updateProgress() {
+        const percent = ((currentPage) / (TOTAL_PAGES - 1)) * 100;
+        document.getElementById('progress-bar').style.width = `${percent}%`;
+    }
+
+    function changePage(dir) {
+        if (dir !== 0 && transitionSynth && currentPage > 0) {
+            transitionSynth.triggerAttackRelease('C6', '0.05s');
+        }
+
+        if(currentAudio) {
+            currentAudio.pause();
+            currentAudio.currentTime = 0;
+        }
+        if(audioTimeoutId) clearTimeout(audioTimeoutId);
+        if(delayedQuizTimeoutId) clearTimeout(delayedQuizTimeoutId);
+
+        if (activeRecorder && activeRecorder.state === 'recording') {
+            activeRecorder.stop();
+            clearTimeout(recordingTimeout);
+        }
+
+        const oldPage = document.getElementById(`page-${currentPage}`);
+        if(oldPage) oldPage.classList.remove('active');
+
+        currentPage += dir;
+        
+        if(currentPage < 0) currentPage = 0;
+        if(currentPage >= TOTAL_PAGES) currentPage = TOTAL_PAGES - 1;
+
+        const newPage = document.getElementById(`page-${currentPage}`);
+        if(newPage) newPage.classList.add('active');
+
+        updateProgress();
+        
+        if (currentPage === TOTAL_PAGES - 1) {
+            triggerLessonComplete();
+        }
+    }
+
+    function playCardAudio(url) {
+        if (url === '#' || !url) return;
+        
+        if(audioTimeoutId) clearTimeout(audioTimeoutId);
+        if(delayedQuizTimeoutId) clearTimeout(delayedQuizTimeoutId);
+        
+        if(currentAudio) {
+            currentAudio.pause();
+            currentAudio.currentTime = 0;
+        }
+        currentAudio = new Audio(url);
+        const playPromise = currentAudio.play();
+        if (playPromise !== undefined) {
+            playPromise.catch(error => { console.warn("Card audio playback interrupted:", error); });
+        }
+    }
+
+    function playDelayedQuizAudio(pageId, url) {
+        if (url === '#' || !url) return;
+        
+        if(audioTimeoutId) clearTimeout(audioTimeoutId);
+        if(delayedQuizTimeoutId) clearTimeout(delayedQuizTimeoutId);
+        
+        if(currentAudio) {
+            currentAudio.pause();
+            currentAudio.currentTime = 0;
+        }
+        
+        const icon = document.getElementById(`audio-icon-${pageId}`);
+        if(icon) {
+            icon.classList.remove('ph-speaker-high');
+            icon.classList.add('ph-speaker-hifi', 'animate-pulse');
+        }
+
+        currentAudio = new Audio(url);
+        currentAudio.onended = () => {
+            if(icon) {
+                icon.classList.remove('ph-speaker-hifi', 'animate-pulse');
+                icon.classList.add('ph-speaker-high');
+            }
+            if (!completedPages.has(pageId)) {
+                delayedQuizTimeoutId = setTimeout(() => {
+                    const quizArea = document.getElementById(`quiz-area-${pageId}`);
+                    if(quizArea) {
+                        quizArea.classList.remove('opacity-0', 'pointer-events-none');
+                    }
+                }, 2000);
+            }
+        };
+        
+        const playPromise = currentAudio.play();
+        if (playPromise !== undefined) {
+            playPromise.catch(error => { console.warn("Audio playback interrupted:", error); });
+        }
+    }
+
+    function triggerLessonComplete() {
+        if (completionSynth) {
+            completionSynth.triggerAttackRelease(["C5", "E5", "G5", "C6"], "4n");
+        }
+        window.parent.postMessage({ type: 'lesson_complete' }, '*');
+    }
+
+    /* =========================================
+       Comprehension Quiz Logic (Pages 2, 3, 4)
+    ========================================= */
+    document.querySelectorAll('.quiz-option').forEach(opt => {
+        opt.addEventListener('click', function() {
+            const pageId = parseInt(this.closest('.page').id.replace('page-', ''));
+            if (completedPages.has(pageId)) return;
+            
+            const parent = this.closest('.flex-row');
+            parent.querySelectorAll('.quiz-option').forEach(sib => sib.classList.remove('selected'));
+            this.classList.add('selected');
+        });
+    });
+
+    function checkComprehension(pageId) {
+        if (completedPages.has(pageId)) {
+            changePage(1); 
+            return;
+        }
+
+        if (!quizAttempts[pageId]) quizAttempts[pageId] = 0;
+        quizAttempts[pageId]++;
+        
+        const options = document.querySelectorAll(`#quiz-options-${pageId} .quiz-option`);
+        const statusEl = document.getElementById(`quiz-status-${pageId}`);
+        const transcriptArea = document.getElementById(`transcript-area-${pageId}`);
+        const krText = document.getElementById(`kr-text-${pageId}`);
+        const frText = document.getElementById(`fr-text-${pageId}`);
+        const btn = document.getElementById(`quiz-btn-${pageId}`);
+        
+        let selectedOpt = Array.from(options).find(opt => opt.classList.contains('selected'));
+
+        if(!selectedOpt) {
+            statusEl.innerText = "Veuillez choisir une option.";
+            statusEl.className = "font-bold text-center text-orange-500 text-sm leading-tight";
+            return;
+        }
+
+        const isCorrect = selectedOpt.dataset.val === "1";
+
+        if (isCorrect) {
+            if(correctSound) correctSound.triggerAttackRelease('C5', '0.1s');
+            statusEl.innerText = "Très bien !";
+            statusEl.className = "font-bold text-center text-green-500 text-sm leading-tight";
+            selectedOpt.classList.remove('selected');
+            selectedOpt.classList.add('correct');
+            options.forEach(opt => opt.style.pointerEvents = 'none');
+            
+            transcriptArea.classList.remove('hidden');
+            setTimeout(() => { transcriptArea.classList.remove('opacity-0'); }, 10);
+            krText.classList.remove('hidden');
+            frText.classList.remove('hidden');
+            
+            completedPages.add(pageId);
+            
+            btn.innerText = "Suivant";
+            btn.classList.remove('bg-slate-800', 'hover:bg-slate-900');
+            btn.classList.add('bg-indigo-600', 'hover:bg-indigo-700');
+            
+        } else {
+            if(errorSound) errorSound.triggerAttackRelease('C4', '0.1s');
+            
+            if (quizAttempts[pageId] === 3) {
+                // 3번째 시도용 (2번 틀린 직후)
+                statusEl.innerText = "Incorrect. Voici le texte.";
+                statusEl.className = "font-bold text-center text-orange-500 text-sm leading-tight";
+                transcriptArea.classList.remove('hidden');
+                setTimeout(() => { transcriptArea.classList.remove('opacity-0'); }, 10);
+                krText.classList.remove('hidden');
+                frText.classList.add('hidden'); // 번역 숨김 유지
+            } else if (quizAttempts[pageId] >= 4) {
+                // 4번째 시도용 (3번 틀린 직후)
+                statusEl.innerText = "Incorrect. Voici la traduction.";
+                statusEl.className = "font-bold text-center text-blue-500 text-sm leading-tight";
+                transcriptArea.classList.remove('hidden');
+                setTimeout(() => { transcriptArea.classList.remove('opacity-0'); }, 10);
+                krText.classList.remove('hidden');
+                frText.classList.remove('hidden'); // 번역 공개
+            } else {
+                statusEl.innerText = "Incorrect. Réessayez !";
+                statusEl.className = "font-bold text-center text-red-500 text-sm leading-tight";
+                transcriptArea.classList.add('hidden');
+                transcriptArea.classList.add('opacity-0');
+            }
+            
+            selectedOpt.classList.remove('selected');
+            selectedOpt.classList.add('wrong');
+            setTimeout(() => selectedOpt.classList.remove('wrong'), 1000);
+        }
+    }
+
+    /* =========================================
+       Cloze Quiz Logic (Page 5)
+    ========================================= */
+    function renderClozeSentence() {
+        const container = document.getElementById('cloze-container-5');
+        container.innerHTML = '';
+        
+        const parts = clozeData.template.split(/\[\d+\]/);
+        
+        parts.forEach((part, index) => {
+            const span = document.createElement('span');
+            span.innerText = part;
+            container.appendChild(span);
+            
+            if (index < clozeData.selected.length) {
+                const slot = document.createElement('div');
+                const selWord = clozeData.selected[index];
+                const isLocked = clozeData.locked[index];
+                
+                slot.className = `cloze-slot ${selWord ? 'filled' : ''} ${isLocked ? 'locked' : ''}`;
+                slot.innerText = selWord ? selWord : '';
+                
+                if (!isLocked) {
+                    slot.onclick = () => removeWordFromCloze(index);
+                }
+                
+                container.appendChild(slot);
+            }
+        });
+    }
+
+    function renderClozeBank() {
+        const bank = document.getElementById('cloze-bank-5');
+        bank.innerHTML = '';
+        
+        const bankClasses = "px-3 py-1.5 sm:px-4 sm:py-2 text-sm sm:text-base";
+        
+        let usedCounts = {};
+        clozeData.selected.forEach(w => { 
+            if(w) usedCounts[w] = (usedCounts[w] || 0) + 1; 
+        });
+
+        clozeData.options.forEach(word => {
+            const wordEl = document.createElement('div');
+            if (usedCounts[word] > 0) {
+                usedCounts[word]--;
+                wordEl.className = `rounded-lg text-transparent bg-slate-200 border border-transparent select-none ${bankClasses}`;
+                wordEl.innerText = word;
+            } else {
+                wordEl.className = `builder-word bg-white text-slate-700 font-bold rounded-lg shadow-sm border-2 border-slate-200 hover:border-indigo-300 hover:text-indigo-600 ${bankClasses}`;
+                wordEl.innerText = word;
+                wordEl.onclick = () => addWordToCloze(word);
+            }
+            bank.appendChild(wordEl);
+        });
+    }
+
+    function addWordToCloze(word) {
+        if (completedPages.has(5)) return;
+        const emptyIdx = clozeData.selected.findIndex(s => s === null);
+        if (emptyIdx !== -1) {
+            clozeData.selected[emptyIdx] = word;
+            renderClozeSentence();
+            renderClozeBank();
+            document.getElementById('cloze-status-5').innerText = "";
+        }
+    }
+
+    function removeWordFromCloze(index) {
+        if (completedPages.has(5) || clozeData.locked[index]) return;
+        if (clozeData.selected[index] !== null) {
+            clozeData.selected[index] = null;
+            renderClozeSentence();
+            renderClozeBank();
+            document.getElementById('cloze-status-5').innerText = "";
+        }
+    }
+
+    function checkClozeQuiz() {
+        if (completedPages.has(5)) {
+             changePage(1);
+             return;
+        }
+        
+        const statusEl = document.getElementById('cloze-status-5');
+        
+        if (clozeData.selected.includes(null)) {
+            statusEl.innerText = "Veuillez remplir tous les blancs.";
+            statusEl.className = "font-bold text-center text-orange-500 text-sm leading-tight";
+            return;
+        }
+        
+        clozeData.attempts++;
+        let allCorrect = true;
+        
+        clozeData.selected.forEach((word, idx) => {
+            if (word === clozeData.answers[idx]) {
+                clozeData.locked[idx] = true;
+            } else {
+                allCorrect = false;
+                if (clozeData.attempts < 3) {
+                    clozeData.selected[idx] = null; 
+                }
+            }
+        });
+
+        if (allCorrect || clozeData.attempts >= 3) {
+            if (allCorrect) {
+                if(correctSound) correctSound.triggerAttackRelease('C5', '0.1s');
+                statusEl.innerText = "Excellent !";
+                statusEl.className = "font-bold text-center text-green-500 text-sm leading-tight";
+            } else {
+                if(errorSound) errorSound.triggerAttackRelease('C4', '0.1s');
+                statusEl.innerText = "Voici la bonne réponse !";
+                statusEl.className = "font-bold text-center text-blue-500 text-sm leading-tight";
+                clozeData.selected = [...clozeData.answers];
+                clozeData.locked = [true, true, true, true, true, true, true];
+            }
+            
+            renderClozeSentence();
+            renderClozeBank();
+            completedPages.add(5);
+            
+            const btn = document.getElementById('cloze-btn-5');
+            btn.innerText = "Suivant";
+            btn.classList.remove('bg-slate-800', 'hover:bg-slate-900');
+            btn.classList.add('bg-indigo-600', 'hover:bg-indigo-700');
+        } else {
+            if(errorSound) errorSound.triggerAttackRelease('C4', '0.1s');
+            statusEl.innerText = "Incorrect. Les mots faux ont été retirés.";
+            statusEl.className = "font-bold text-center text-red-500 text-sm leading-tight";
+            renderClozeSentence();
+            renderClozeBank();
+        }
+    }
+
+    /* =========================================
+       Multi-step Speaking API (Page 6)
+    ========================================= */
+    function renderSpeakingStep(idx) {
+        if (idx >= speakSteps.length) return;
+        
+        const step = speakSteps[idx];
+        document.getElementById('step-fr-text-6').innerText = step.fr;
+        document.getElementById('step-hint-text-6').innerText = step.hint;
+        document.getElementById('step-ans-text-6').innerText = step.kr;
+        
+        document.getElementById('step-hint-text-6').classList.add('hidden');
+        document.getElementById('step-ans-text-6').classList.add('hidden');
+        
+        document.getElementById('transcript-6').innerHTML = "";
+        document.getElementById('status-6').innerHTML = "";
+        
+        const dots = document.getElementById('step-dots-6').children;
+        for(let i=0; i<dots.length; i++) {
+            if(i < idx) dots[i].className = "w-2 h-2 rounded-full bg-green-500";
+            else if(i === idx) dots[i].className = "w-2 h-2 rounded-full bg-indigo-600";
+            else dots[i].className = "w-2 h-2 rounded-full bg-slate-300";
+        }
+        
+        speakStepAttempts = 0;
+        const btn = document.getElementById('mic-btn-6');
+        btn.disabled = false;
+        btn.classList.remove('hidden');
+        btn.className = "bg-red-500 text-white rounded-full flex items-center justify-center w-16 h-16 shadow-xl transition-transform hover:scale-105 active:scale-95";
+        btn.innerHTML = `<i class="ph-fill ph-microphone text-3xl"></i>`;
+        
+        const nextBtn = document.getElementById('step-next-btn-6');
+        if (nextBtn) nextBtn.classList.add('hidden');
+    }
+
+    function nextSpeakingStep() {
+        document.getElementById('step-next-btn-6').classList.add('hidden');
+        
+        currentSpeakStep++;
+        if (currentSpeakStep < speakSteps.length) {
+            renderSpeakingStep(currentSpeakStep);
+        } else {
+            completedPages.add(6);
+            changePage(1); // Suivant 누르면 바로 Outro 페이지로 이동
+        }
+    }
+
+    async function toggleRecordSpeechStep(btn) {
+        const statusEl = document.getElementById('status-6');
+        const step = speakSteps[currentSpeakStep];
+        
+        if (btn.classList.contains('recording-pulse')) {
+            if (activeRecorder && activeRecorder.state === 'recording') {
+                activeRecorder.stop();
+                clearTimeout(recordingTimeout);
+            }
+            return;
+        }
+
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const mediaRecorder = new MediaRecorder(stream);
+            let audioChunks = [];
+
+            mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+            
+            mediaRecorder.onstop = async () => {
+                btn.classList.remove('recording-pulse');
+                btn.innerHTML = `<i class="ph ph-spinner animate-spin text-3xl"></i>`;
+                statusEl.innerText = "";
+                
+                const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                const reader = new FileReader();
+                reader.readAsDataURL(audioBlob);
+                reader.onloadend = async () => {
+                    const base64data = reader.result.split(',')[1];
+                    await processStepSpeechApi(base64data, step, btn, statusEl);
+                }
+                
+                stream.getTracks().forEach(track => track.stop());
+            };
+
+            mediaRecorder.start();
+            activeRecorder = mediaRecorder;
+            btn.classList.add('recording-pulse');
+            btn.innerHTML = `<i class="ph-fill ph-stop text-3xl"></i>`;
+            statusEl.innerText = "";
+            document.getElementById('transcript-6').innerHTML = "";
+
+            recordingTimeout = setTimeout(() => {
+                if(mediaRecorder.state === 'recording') mediaRecorder.stop();
+            }, 12000);
+
+        } catch (err) {
+            console.error("Mic access denied or error:", err);
+            statusEl.innerText = "Erreur de microphone.";
+            statusEl.className = "text-red-500 font-medium text-sm leading-tight text-center";
+        }
+    }
+
+    async function processStepSpeechApi(audioBase64, step, btn, statusEl) {
+        speakStepAttempts++;
+        let score = 0;
+        let recognizedText = "";
+
+        try {
+            const res = await fetch(CLOVA_API_FUNCTION_URL, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ audioBase64: audioBase64, languageCode: "Kor", referenceText: step.kr })
+            });
+            if (!res.ok) throw new Error("API Error");
+            const result = await res.json();
+            score = result.assessment?.pronunciation_score || 0;
+            recognizedText = result.recognized || result.text || "";
+        } catch (e) {
+            console.warn("API Error", e);
+            score = 0;
+            recognizedText = ""; // 랜덤 패스 꼼수 완전히 삭제
+        }
+        
+        if (recognizedText) {
+            const cleanRec = recognizedText.replace(/[\s\.\?\,]/g, '');
+            if (step.valid.some(ans => cleanRec.includes(ans))) {
+                score = Math.max(score, 100); 
+            }
+        }
+
+        const transcriptEl = document.getElementById('transcript-6');
+        if (recognizedText && recognizedText !== "???") {
+            transcriptEl.innerHTML = `<span class="text-slate-500">Vous avez dit : </span><span class="font-bold text-indigo-600">"${recognizedText}"</span>`;
+        } else {
+            transcriptEl.innerHTML = `<span class="text-slate-500">Audio non reconnu. Veuillez parler plus fort.</span>`;
+        }
+
+        let isPass = score >= 80;
+        let forcePass = speakStepAttempts >= 3;
+        
+        if (speakStepAttempts >= step.failsToHint && step.hint) {
+            document.getElementById('step-hint-text-6').classList.remove('hidden');
+        }
+        if (isPass || forcePass || speakStepAttempts >= step.failsToAns) {
+            document.getElementById('step-ans-text-6').classList.remove('hidden');
+        }
+        
+        if (isPass || forcePass) {
+            statusEl.innerHTML = isPass ? "Très bien !" : "Passons à la suite.";
+            statusEl.className = isPass ? "text-green-600 font-bold text-sm leading-tight text-center" : "text-blue-600 font-bold text-sm leading-tight text-center";
+            
+            btn.classList.add('hidden'); // 마이크 버튼 숨김
+            
+            const nextBtn = document.getElementById('step-next-btn-6');
+            if(nextBtn) nextBtn.classList.remove('hidden'); // Suivant 버튼 등장
+            
+            if(correctSound && isPass) correctSound.triggerAttackRelease('C5', '0.2s');
+            
+        } else {
+            statusEl.innerHTML = "Répétez encore une fois.";
+            statusEl.className = "text-orange-500 font-bold text-sm leading-tight text-center";
+            if(errorSound) errorSound.triggerAttackRelease('C4', '0.1s');
+            
+            btn.disabled = false;
+            btn.className = "bg-red-500 text-white rounded-full flex items-center justify-center w-16 h-16 shadow-xl transition-transform hover:scale-105 active:scale-95";
+            btn.innerHTML = `<i class="ph-fill ph-microphone text-3xl"></i>`;
+        }
+    }
+
+</script>
+</body>
+</html>
