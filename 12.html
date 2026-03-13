@@ -165,15 +165,23 @@
             
             <!-- Chat Header -->
             <div class="w-full bg-white border-b border-slate-200 py-3 px-4 flex items-center shrink-0 shadow-sm z-10">
-                <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold mr-3 border border-indigo-200">
+                <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold mr-3 border border-indigo-200 shrink-0">
                     서원
                 </div>
-                <h2 class="text-lg font-bold text-slate-800">Conversation avec Seowon</h2>
+                <h2 class="text-lg font-bold text-slate-800 truncate">Conversation avec Seowon</h2>
             </div>
 
-            <!-- Scrollable Chat Area -->
-            <div id="chat-box" class="chat-area">
-                <!-- Bubbles injected here via JS -->
+            <!-- Chat Area Wrapper -->
+            <div class="flex-1 w-full max-w-lg mx-auto relative min-h-0 bg-slate-50">
+                <!-- Floating Pause Button in Chat Area -->
+                <button onclick="pauseConversation()" class="absolute top-4 right-4 text-slate-400 hover:text-red-500 transition-colors z-20 bg-white rounded-full shadow-md w-10 h-10 flex items-center justify-center border border-slate-200" title="Pause / Annuler l'enregistrement">
+                    <i class="ph-fill ph-pause text-xl"></i>
+                </button>
+
+                <!-- Scrollable Chat Area -->
+                <div id="chat-box" class="w-full h-full overflow-y-auto p-4 flex flex-col gap-4">
+                    <!-- Bubbles injected here via JS -->
+                </div>
             </div>
 
             <!-- Fixed Bottom Control Area -->
@@ -235,6 +243,7 @@
     let turnAttempts = 0;
     let activeRecorder = null;
     let recordingTimeout = null;
+    let isDiscarding = false; // 녹음 취소 플래그 추가
 
     const dialogueScript = {
         1: {
@@ -425,13 +434,7 @@
                 if(correctSound) correctSound.triggerAttackRelease('C5', '0.2s');
             } else {
                 enableMic();
-                // Automatically trigger the mic after audio ends
-                setTimeout(() => {
-                    const micBtn = document.getElementById('chat-mic-btn');
-                    if (!micBtn.classList.contains('recording-pulse')) {
-                        toggleChatMic(micBtn);
-                    }
-                }, 500);
+                // 자동 재생(setTimeout) 부분 제거됨: 유저가 직접 마이크를 눌러야 시작함
             }
         };
         currentAudio.play().catch(e => {
@@ -444,11 +447,41 @@
     /* =========================================
        Gemini Audio Recognition & Evaluation
     ========================================= */
+    function pauseConversation() {
+        // 1. 서원의 오디오가 재생 중이면 정지
+        if (currentAudio && !currentAudio.paused) {
+            currentAudio.pause();
+            enableMic(); 
+        }
+        
+        // 2. 녹음 중일 경우 녹음 강제 종료 및 파기(Discard)
+        if (activeRecorder && activeRecorder.state === 'recording') {
+            isDiscarding = true;
+            activeRecorder.stop();
+            clearTimeout(recordingTimeout);
+            
+            // UI 초기화
+            const btn = document.getElementById('chat-mic-btn');
+            btn.classList.remove('recording-pulse');
+            btn.innerHTML = `<i class="ph-fill ph-microphone text-3xl"></i>`;
+            
+            const statusEl = document.getElementById('chat-status');
+            statusEl.innerText = "Enregistrement annulé.";
+            statusEl.className = "text-orange-500 font-bold text-sm leading-tight text-center mt-2 h-4";
+            
+            // 1.5초 후 다시 마이크 활성화
+            setTimeout(() => {
+                enableMic();
+            }, 1500);
+        }
+    }
+
     async function toggleChatMic(btn) {
         const statusEl = document.getElementById('chat-status');
         
         if (btn.classList.contains('recording-pulse')) {
             if (activeRecorder && activeRecorder.state === 'recording') {
+                isDiscarding = false; // 정상적인 종료 (API 전송 O)
                 activeRecorder.stop();
                 clearTimeout(recordingTimeout);
             }
@@ -463,6 +496,12 @@
             mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
             
             mediaRecorder.onstop = async () => {
+                // 일시정지 버튼으로 취소된 경우 백엔드로 전송하지 않고 종료
+                if (isDiscarding) {
+                    isDiscarding = false;
+                    return; 
+                }
+
                 btn.classList.remove('recording-pulse');
                 btn.innerHTML = `<i class="ph ph-spinner animate-spin text-3xl"></i>`;
                 statusEl.innerText = "Analyse en cours...";
@@ -511,20 +550,26 @@
         let isPass = false;
 
         const payload = {
-            contents: [{
-                parts: [
-                    { text: "Analyze the audio response." },
-                    { inlineData: { mimeType: mimeType, data: audioBase64 } }
-                ]
-            }],
-            systemInstruction: {
-                parts: [{ text: sysPrompt }]
-            }
+            model: "gemini-2.5-flash",
+            contents: [
+                {
+                    role: "user",
+                    parts: [
+                        { text: "Analyze the audio response." },
+                        { 
+                            inline_data: { 
+                                mime_type: mimeType, 
+                                data: audioBase64 
+                            } 
+                        }
+                    ]
+                }
+            ],
+            systemInstruction: sysPrompt // 백엔드 로직에 맞게 객체가 아닌 문자열(String)로 전송
         };
 
         try {
-            // Simulated delay for UI realism if API responds too fast
-            const fetchPromise = fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+            const fetchPromise = fetch(`https://coreeno.base44.app/api/functions/Geminichat`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
@@ -537,7 +582,8 @@
             }
             
             const data = await res.json();
-            const resultText = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+            // 백엔드가 반환하는 형태는 { text: aiText, raw: data } 임을 반영
+            const resultText = data.text || "";
             
             // Extract using regex
             const tMatch = resultText.match(/\[전사\]\s*(.*?)\s*(?:\[평가\]|$)/si);
@@ -552,8 +598,7 @@
             if (!transcript) transcript = "???";
 
         } catch (error) {
-            console.warn("Gemini API Error, checking if apiKey is empty. Proceeding gracefully.", error);
-            // Graceful fallback if no API key is injected yet for testing purposes
+            console.warn("Gemini API Error.", error);
             transcript = "Audio non reconnu.";
             evaluation = "Erreur de connexion. Veuillez réessayer.";
             isPass = false;
@@ -601,7 +646,7 @@
 
             addFeedbackBubble(turnData.fr, cleanEval);
             
-            // Allow retry (auto-start recording logic can be implemented here if needed, but manual retry is safer for flow control)
+            // Allow retry
             setTimeout(() => {
                 enableMic();
             }, 1000);
