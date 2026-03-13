@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Leçon 12 - Conversation avec Seowon</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- Tone.js for Sound Effects -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+
+    <style>
+        /* CSS Reset & Strict No-Scroll Constraints */
+        html, body {
+            margin: 0; padding: 0;
+            width: 100vw; height: 100vh;
+            overflow: hidden;
+            background-color: #f1f5f9;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            touch-action: none;
+        }
+
+        /* Full Screen Flex Container */
+        #app-container {
+            width: 100%;
+            height: 100%;
+            background-color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        #progress-container {
+            flex-shrink: 0;
+        }
+
+        /* Pages Wrapper */
+        #pages-wrapper {
+            flex: 1;
+            position: relative;
+            width: 100%;
+            display: flex;
+            overflow: hidden;
+        }
+
+        .page {
+            display: none;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+        .page.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideUpBubble {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .bubble-animate {
+            animation: slideUpBubble 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        /* Content Area */
+        .content-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 1.5rem;
+            text-align: center;
+            min-h: 0;
+            overflow-y: auto;
+        }
+
+        /* Pulse Animation for Recording */
+        .recording-pulse {
+            animation: pulse-red 1.5s infinite;
+        }
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+        
+        /* Chat UI Specific */
+        .chat-area {
+            flex: 1;
+            width: 100%;
+            max-width: 32rem; /* max-w-lg */
+            margin: 0 auto;
+            overflow-y: auto;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            background-color: #f8fafc; /* light slate */
+        }
+        
+        .chat-bottom {
+            shrink: 0;
+            width: 100%;
+            padding: 1rem;
+            background-color: #ffffff;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 7rem;
+        }
+
+    </style>
+</head>
+<body>
+
+<div id="app-container">
+    
+    <!-- Top Progress Bar -->
+    <div id="progress-container" class="w-full h-2 bg-slate-100">
+        <div id="progress-bar" class="h-full bg-indigo-500 transition-all duration-300 w-0"></div>
+    </div>
+
+    <!-- Pages Container -->
+    <div id="pages-wrapper">
+
+        <!-- Page 0: Cover -->
+        <div id="page-0" class="page active justify-center items-center bg-indigo-50">
+            <div class="content-area">
+                <p class="text-indigo-600 font-semibold mb-2 text-lg">Chapitre 5 - Les activités</p>
+                <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-800 mb-10">Leçon 12 - Conversation avec Seowon</h1>
+                <button onclick="changePage(1)" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-10 rounded-full text-xl shadow-lg transition-transform transform hover:-translate-y-1 active:translate-y-0 flex items-center gap-3">
+                    <i class="ph-fill ph-play-circle text-2xl"></i>
+                    Commencer
+                </button>
+            </div>
+        </div>
+
+        <!-- Page 1: Intro Text -->
+        <div id="page-1" class="page">
+            <div class="content-area">
+                <div class="flex flex-col items-center justify-center w-full max-w-lg gap-8">
+                    <p class="text-slate-800 text-lg sm:text-xl font-medium leading-relaxed text-center">
+                        Seowon va vous poser des questions.<br>Écoutez bien et répondez.
+                    </p>
+                    <button onclick="startChat()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-10 rounded-full text-xl shadow-lg transition-transform transform hover:scale-105 active:scale-95">
+                        C’est parti !
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Page 2: Chat Interface -->
+        <div id="page-2" class="page">
+            
+            <!-- Chat Header -->
+            <div class="w-full bg-white border-b border-slate-200 py-3 px-4 flex items-center shrink-0 shadow-sm z-10">
+                <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold mr-3 border border-indigo-200">
+                    서원
+                </div>
+                <h2 class="text-lg font-bold text-slate-800">Conversation avec Seowon</h2>
+            </div>
+
+            <!-- Scrollable Chat Area -->
+            <div id="chat-box" class="chat-area">
+                <!-- Bubbles injected here via JS -->
+            </div>
+
+            <!-- Fixed Bottom Control Area -->
+            <div class="chat-bottom">
+                <div class="flex flex-col items-center justify-center w-full h-full relative">
+                    
+                    <button id="chat-mic-btn" onclick="toggleChatMic(this)" class="bg-slate-300 text-white rounded-full flex items-center justify-center w-16 h-16 shadow-lg transition-transform hover:scale-105 active:scale-95 cursor-not-allowed pointer-events-none" disabled>
+                        <i class="ph-fill ph-microphone text-3xl"></i>
+                    </button>
+                    
+                    <p id="chat-status" class="text-slate-500 font-medium text-sm leading-tight text-center mt-2 h-4">Écoutez Seowon...</p>
+                    
+                    <!-- Terminer button (Hidden until end) -->
+                    <button id="chat-finish-btn" onclick="changePage(1)" class="hidden bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-10 rounded-full text-lg shadow-lg transition-transform hover:scale-105 active:scale-95 absolute">
+                        Terminer
+                    </button>
+
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Page 3: Outro -->
+        <div id="page-3" class="page justify-center items-center bg-green-50">
+            <div class="content-area">
+                <div class="bg-white p-5 rounded-full shadow-md mb-6">
+                    <i class="ph-fill ph-confetti text-5xl text-orange-500"></i>
+                </div>
+                <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-800 mb-6 leading-tight">Félicitations 🥳</h1>
+                
+                <p class="text-content text-green-900 font-medium font-bold text-lg">
+                    Vous avez terminé toutes les activités du programme &lt;parlez des activités&gt; !
+                </p>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    /* =========================================
+       State Management & Navigation
+    ========================================= */
+    const TOTAL_PAGES = 4;
+    let currentPage = 0;
+    
+    // Audio Context & Players
+    let currentAudio = null;
+    let correctSound = null;
+    let errorSound = null;
+    let completionSynth = null;
+    let transitionSynth = null;
+
+    // Chat API details
+    const apiKey = ""; // Environment provided
+    
+    // Chat State
+    let currentTurnId = 1;
+    let turnAttempts = 0;
+    let activeRecorder = null;
+    let recordingTimeout = null;
+
+    const dialogueScript = {
+        1: {
+            audio: "https://res.cloudinary.com/de76i94ia/video/upload/v1773306989/12-1_rnnc54.mp3",
+            text: "안녕하세요, 저는 서원이에요.",
+            fr: "Bonjour, je suis Seowon.",
+            sysPrompt: "“안녕하세요, 저는 서원이에요”라는 발화에 대한 유저의 응답을 듣고 두 부분으로 평가한다.\n[전사] 유저의 발화값을 한국어로 전사한다.\n[평가] 간단한 인사, 자기 소개 등으로 답변하면 <Pass> 라고 답한다. 이외 다른 설명은 덧붙이지 않는다. 유저가 제대로 답변하지 못한 경우에만 문제에 대해 프랑스어 한 문장 이내로 설명한다."
+        },
+        2: {
+            audio: "https://res.cloudinary.com/de76i94ia/video/upload/v1773306990/12-2_k3lobc.mp3",
+            text: "한국어를 공부해요?",
+            fr: "Apprends-tu le coréen ?",
+            sysPrompt: "“한국어를 공부해요?”라는 질문에 대한 유저의 응답을 듣고 두 부분으로 평가한다.\n[전사] 유저의 발화값을 한국어로 전사한다.\n[평가] 질문에 적절히 답변하면 <Pass> 라고 답한다. 이외 다른 설명은 덧붙이지 않는다. 유저가 제대로 답변하지 못한 경우에는 문제에 대해 프랑스어 한 문장 이내로 설명한다."
+        },
+        3: {
+            audio: "https://res.cloudinary.com/de76i94ia/video/upload/v1773306990/12-3_pbhrxi.mp3",
+            text: "그렇군요. 오늘은 뭐 해요?",
+            fr: "Je vois. Qu’est-ce que tu fais aujourd’hui ?",
+            sysPrompt: "“오늘 뭐 해요?”라는 질문에 대한 유저의 응답을 듣고 두 부분으로 평가한다.\n[전사] 유저의 발화값을 한국어로 전사한다.\n[평가] 질문에 적절히 답변하면 <Pass> 라고 답한다. 이외 다른 설명은 덧붙이지 않는다. 유저가 제대로 답변하지 못한 경우에는 문제에 대해 프랑스어 한 문장 이내로 설명한다."
+        },
+        4: {
+            audio: "https://res.cloudinary.com/de76i94ia/video/upload/v1773306990/12-4_dvftrj.mp3",
+            text: "알겠어요. 요리는 안 해요?",
+            fr: "Je vois. Tu ne cuisines pas ?",
+            sysPrompt: "“요리는 안 해요?”라는 질문에 대한 유저의 응답을 듣고 두 부분으로 평가한다.\n[전사] 유저의 발화값을 한국어로 전사한다.\n[평가] 질문에 적절히 답변하면 <Pass> 라고 답한다. 이외 다른 설명은 덧붙이지 않는다. 유저가 제대로 답변하지 못한 경우에는 문제에 대해 프랑스어 한 문장 이내로 설명한다."
+        },
+        5: {
+            audio: "https://res.cloudinary.com/de76i94ia/video/upload/v1773306991/12-5_rmyunl.mp3",
+            text: "아, 혹시 운전도 해요?",
+            fr: "Oh, tu sais aussi conduire par hasard ?",
+            sysPrompt: "“운전도 해요?”라는 질문에 대한 유저의 응답을 듣고 두 부분으로 평가한다.\n[전사] 유저의 발화값을 한국어로 전사한다.\n[평가] 질문에 적절히 답변하면 <Pass> 라고 답한다. 이외 다른 설명은 덧붙이지 않는다. 유저가 제대로 답변하지 못한 경우에는 문제에 대해 프랑스어 한 문장 이내로 설명한다."
+        },
+        6: {
+            audio: "https://res.cloudinary.com/de76i94ia/video/upload/v1773306990/12-6_sc7kxw.mp3",
+            text: "오늘 이야기해서 즐거웠어요. 다음에 또 만나요!",
+            fr: "C'était un plaisir de vous parler aujourd'hui. On se voit à la prochaine !",
+            sysPrompt: null // No quiz for 6
+        }
+    };
+
+    async function initAudioContext() {
+        await Tone.start();
+        correctSound = new Tone.Synth({ oscillator: { type: "sine" } }).toDestination();
+        errorSound = new Tone.Synth({ oscillator: { type: "triangle" } }).toDestination();
+        completionSynth = new Tone.PolySynth(Tone.Synth).toDestination();
+        transitionSynth = new Tone.Synth({
+            oscillator: { type: "sine" },
+            envelope: { attack: 0.01, decay: 0.1, sustain: 0, release: 0.1 }
+        }).toDestination();
+        transitionSynth.volume.value = -15; 
+    }
+
+    function changePage(dir) {
+        if (dir !== 0 && transitionSynth && currentPage > 0) {
+            transitionSynth.triggerAttackRelease('C6', '0.05s');
+        }
+
+        if(currentAudio) {
+            currentAudio.pause();
+            currentAudio.currentTime = 0;
+        }
+        
+        if (activeRecorder && activeRecorder.state === 'recording') {
+            activeRecorder.stop();
+            clearTimeout(recordingTimeout);
+        }
+
+        const oldPage = document.getElementById(`page-${currentPage}`);
+        if(oldPage) oldPage.classList.remove('active');
+
+        currentPage += dir;
+        
+        if(currentPage < 0) currentPage = 0;
+        if(currentPage >= TOTAL_PAGES) currentPage = TOTAL_PAGES - 1;
+
+        const newPage = document.getElementById(`page-${currentPage}`);
+        if(newPage) newPage.classList.add('active');
+
+        const percent = ((currentPage) / (TOTAL_PAGES - 1)) * 100;
+        document.getElementById('progress-bar').style.width = `${percent}%`;
+        
+        if (currentPage === TOTAL_PAGES - 1) {
+            if (completionSynth) completionSynth.triggerAttackRelease(["C5", "E5", "G5", "C6"], "4n");
+            window.parent.postMessage({ type: 'lesson_complete' }, '*');
+        }
+    }
+
+    /* =========================================
+       Chat Controller
+    ========================================= */
+    async function startChat() {
+        await initAudioContext();
+        changePage(1); // Move to Page 2
+        setTimeout(() => {
+            playTurn(1);
+        }, 500);
+    }
+
+    function scrollChatToBottom() {
+        const chatBox = document.getElementById('chat-box');
+        setTimeout(() => {
+            chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: 'smooth' });
+        }, 50);
+    }
+
+    function addSeowonBubble(text) {
+        const chatBox = document.getElementById('chat-box');
+        const bubbleHTML = `
+            <div class="flex w-full justify-start bubble-animate">
+                <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-xs mr-2 shrink-0 border border-indigo-200 mt-1">
+                    서원
+                </div>
+                <div class="bg-white border border-slate-200 text-slate-800 p-3 sm:p-4 rounded-b-2xl rounded-tr-2xl text-sm sm:text-base shadow-sm max-w-[80%] text-left leading-relaxed">
+                    ${text}
+                </div>
+            </div>
+        `;
+        chatBox.insertAdjacentHTML('beforeend', bubbleHTML);
+        scrollChatToBottom();
+    }
+
+    function addUserBubble(text) {
+        const chatBox = document.getElementById('chat-box');
+        const bubbleHTML = `
+            <div class="flex w-full justify-end bubble-animate">
+                <div class="bg-indigo-600 text-white p-3 sm:p-4 rounded-b-2xl rounded-tl-2xl text-sm sm:text-base shadow-sm max-w-[80%] text-left leading-relaxed">
+                    ${text}
+                </div>
+            </div>
+        `;
+        chatBox.insertAdjacentHTML('beforeend', bubbleHTML);
+        scrollChatToBottom();
+    }
+
+    function addFeedbackBubble(fr_translation, explanation) {
+        const chatBox = document.getElementById('chat-box');
+        const bubbleHTML = `
+            <div class="flex w-full justify-center bubble-animate my-1">
+                <div class="bg-orange-50 border border-orange-200 text-orange-800 p-3 rounded-xl text-xs sm:text-sm shadow-sm w-[90%] text-left">
+                    <p class="font-bold mb-1 border-b border-orange-200 pb-1">Traduction : ${fr_translation}</p>
+                    <p>${explanation}</p>
+                </div>
+            </div>
+        `;
+        chatBox.insertAdjacentHTML('beforeend', bubbleHTML);
+        scrollChatToBottom();
+    }
+
+    function enableMic() {
+        const btn = document.getElementById('chat-mic-btn');
+        const status = document.getElementById('chat-status');
+        btn.disabled = false;
+        btn.className = "bg-red-500 text-white rounded-full flex items-center justify-center w-16 h-16 shadow-xl transition-transform hover:scale-105 active:scale-95 cursor-pointer pointer-events-auto";
+        btn.innerHTML = `<i class="ph-fill ph-microphone text-3xl"></i>`;
+        status.innerText = "À vous de parler !";
+        status.className = "text-indigo-600 font-bold text-sm leading-tight text-center mt-2 h-4";
+    }
+
+    function disableMicWait() {
+        const btn = document.getElementById('chat-mic-btn');
+        const status = document.getElementById('chat-status');
+        btn.disabled = true;
+        btn.className = "bg-slate-300 text-white rounded-full flex items-center justify-center w-16 h-16 shadow-none cursor-not-allowed pointer-events-none";
+        status.innerText = "Écoutez Seowon...";
+        status.className = "text-slate-500 font-medium text-sm leading-tight text-center mt-2 h-4";
+    }
+
+    function playTurn(id) {
+        currentTurnId = id;
+        turnAttempts = 0;
+        const turnData = dialogueScript[id];
+        
+        disableMicWait();
+        
+        // Add Seowon's text bubble
+        addSeowonBubble(turnData.text);
+        
+        // Play Audio
+        if(currentAudio) { currentAudio.pause(); }
+        currentAudio = new Audio(turnData.audio);
+        
+        currentAudio.onended = () => {
+            if (id === 6) {
+                // End of conversation
+                document.getElementById('chat-mic-btn').classList.add('hidden');
+                document.getElementById('chat-status').classList.add('hidden');
+                document.getElementById('chat-finish-btn').classList.remove('hidden');
+                if(correctSound) correctSound.triggerAttackRelease('C5', '0.2s');
+            } else {
+                enableMic();
+                // Automatically trigger the mic after audio ends
+                setTimeout(() => {
+                    const micBtn = document.getElementById('chat-mic-btn');
+                    if (!micBtn.classList.contains('recording-pulse')) {
+                        toggleChatMic(micBtn);
+                    }
+                }, 500);
+            }
+        };
+        currentAudio.play().catch(e => {
+            console.warn("Audio play error", e);
+            // fallback if auto-play fails
+            if (id !== 6) enableMic();
+        });
+    }
+
+    /* =========================================
+       Gemini Audio Recognition & Evaluation
+    ========================================= */
+    async function toggleChatMic(btn) {
+        const statusEl = document.getElementById('chat-status');
+        
+        if (btn.classList.contains('recording-pulse')) {
+            if (activeRecorder && activeRecorder.state === 'recording') {
+                activeRecorder.stop();
+                clearTimeout(recordingTimeout);
+            }
+            return;
+        }
+
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const mediaRecorder = new MediaRecorder(stream);
+            let audioChunks = [];
+
+            mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+            
+            mediaRecorder.onstop = async () => {
+                btn.classList.remove('recording-pulse');
+                btn.innerHTML = `<i class="ph ph-spinner animate-spin text-3xl"></i>`;
+                statusEl.innerText = "Analyse en cours...";
+                statusEl.className = "text-slate-500 font-medium text-sm leading-tight text-center mt-2 h-4";
+                
+                const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                const mimeType = audioBlob.type.split(';')[0] || 'audio/webm';
+                
+                const reader = new FileReader();
+                reader.readAsDataURL(audioBlob);
+                reader.onloadend = async () => {
+                    const base64data = reader.result.split(',')[1];
+                    await processGeminiChat(base64data, mimeType);
+                }
+                
+                stream.getTracks().forEach(track => track.stop());
+            };
+
+            mediaRecorder.start();
+            activeRecorder = mediaRecorder;
+            btn.classList.add('recording-pulse');
+            btn.innerHTML = `<i class="ph-fill ph-stop text-3xl"></i>`;
+            statusEl.innerText = "Enregistrement...";
+            statusEl.className = "text-red-500 font-bold text-sm leading-tight text-center mt-2 h-4 animate-pulse";
+
+            // Max recording set to 11 seconds
+            recordingTimeout = setTimeout(() => {
+                if(mediaRecorder.state === 'recording') mediaRecorder.stop();
+            }, 11000);
+
+        } catch (err) {
+            console.error("Mic access error:", err);
+            statusEl.innerText = "Erreur de microphone.";
+            statusEl.className = "text-red-500 font-bold text-sm leading-tight text-center mt-2 h-4";
+            setTimeout(enableMic, 2000);
+        }
+    }
+
+    async function processGeminiChat(audioBase64, mimeType) {
+        turnAttempts++;
+        const turnData = dialogueScript[currentTurnId];
+        const sysPrompt = turnData.sysPrompt;
+        
+        let transcript = "";
+        let evaluation = "";
+        let isPass = false;
+
+        const payload = {
+            contents: [{
+                parts: [
+                    { text: "Analyze the audio response." },
+                    { inlineData: { mimeType: mimeType, data: audioBase64 } }
+                ]
+            }],
+            systemInstruction: {
+                parts: [{ text: sysPrompt }]
+            }
+        };
+
+        try {
+            // Simulated delay for UI realism if API responds too fast
+            const fetchPromise = fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            
+            const res = await fetchPromise;
+            
+            if (!res.ok) {
+                throw new Error("API returned status: " + res.status);
+            }
+            
+            const data = await res.json();
+            const resultText = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+            
+            // Extract using regex
+            const tMatch = resultText.match(/\[전사\]\s*(.*?)\s*(?:\[평가\]|$)/si);
+            const eMatch = resultText.match(/\[평가\]\s*(.*)/si);
+            
+            if (tMatch && tMatch[1]) transcript = tMatch[1].trim();
+            if (eMatch && eMatch[1]) {
+                evaluation = eMatch[1].trim();
+                if (evaluation.includes('<Pass>')) isPass = true;
+            }
+
+            if (!transcript) transcript = "???";
+
+        } catch (error) {
+            console.warn("Gemini API Error, checking if apiKey is empty. Proceeding gracefully.", error);
+            // Graceful fallback if no API key is injected yet for testing purposes
+            transcript = "Audio non reconnu.";
+            evaluation = "Erreur de connexion. Veuillez réessayer.";
+            isPass = false;
+        }
+
+        // 1. Show User Bubble
+        addUserBubble(transcript);
+
+        // 2. Evaluate Pass or Fail
+        let forcePass = turnAttempts >= 2;
+
+        if (isPass || forcePass) {
+            if(correctSound) correctSound.triggerAttackRelease('C5', '0.2s');
+            const statusEl = document.getElementById('chat-status');
+            statusEl.innerText = "Très bien !";
+            statusEl.className = "text-green-600 font-bold text-sm leading-tight text-center mt-2 h-4";
+            
+            // Disable mic during transition
+            disableMicWait();
+
+            setTimeout(() => {
+                // Logic for moving to next question
+                let nextTurnId = currentTurnId + 1;
+                
+                // Special Branch Logic at Q3
+                if (currentTurnId === 3) {
+                    if (transcript.includes("요리")) {
+                        nextTurnId = 5; // Go to Q5
+                    } else {
+                        nextTurnId = 4; // Go to Q4
+                    }
+                }
+                
+                playTurn(nextTurnId);
+
+            }, 1500);
+
+        } else {
+            // Fail
+            if(errorSound) errorSound.triggerAttackRelease('C4', '0.1s');
+            
+            // Clean explanation (remove <Pass> if accidentally there, etc.)
+            let cleanEval = evaluation.replace('<Pass>', '').trim();
+            if(!cleanEval) cleanEval = "Veuillez répéter votre réponse.";
+
+            addFeedbackBubble(turnData.fr, cleanEval);
+            
+            // Allow retry (auto-start recording logic can be implemented here if needed, but manual retry is safer for flow control)
+            setTimeout(() => {
+                enableMic();
+            }, 1000);
+        }
+    }
+
+</script>
+</body>
+</html>
