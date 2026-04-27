@@ -12,7 +12,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
 
     <style>
-        /* CSS Reset & Strict No-Scroll Constraints */
         html, body {
             margin: 0; padding: 0;
             width: 100vw; height: 100vh;
@@ -22,7 +21,6 @@
             touch-action: none;
         }
 
-        /* Full Screen Flex Container */
         #app-container {
             width: 100%;
             height: 100%;
@@ -36,13 +34,13 @@
             flex-shrink: 0;
         }
 
-        /* Pages Wrapper */
         #pages-wrapper {
             flex: 1;
             position: relative;
             width: 100%;
             display: flex;
             overflow: hidden;
+            min-height: 0;
         }
 
         .page {
@@ -51,6 +49,7 @@
             width: 100%;
             height: 100%;
             animation: fadeIn 0.3s ease-out forwards;
+            overflow: hidden;
         }
         .page.active {
             display: flex;
@@ -61,34 +60,26 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Content Area */
         .content-area {
             flex: 1;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            padding: 1rem 1.5rem;
+            padding: 2vh 1.5rem;
             text-align: center;
-            min-h: 0;
+            min-height: 0;
+            overflow: hidden;
         }
 
         .text-content {
-            font-size: 1.05rem;
-            line-height: 1.6rem;
+            font-size: clamp(0.9rem, 2.2vw, 1.2rem);
+            line-height: 1.7;
             color: #334155;
             max-width: 42rem;
             margin: 0 auto;
         }
-        
-        @media (min-width: 768px) {
-            .text-content {
-                font-size: 1.25rem;
-                line-height: 2rem;
-            }
-        }
 
-        /* Interactive Card Button */
         .card-btn {
             transition: transform 0.1s, box-shadow 0.1s;
             cursor: pointer;
@@ -97,7 +88,6 @@
             transform: scale(0.97);
         }
 
-        /* Pulse Animation for Recording */
         .recording-pulse {
             animation: pulse-red 1.5s infinite;
         }
@@ -107,7 +97,6 @@
             100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
         }
 
-        /* Quiz Options */
         .quiz-option {
             transition: all 0.2s;
             cursor: pointer;
@@ -116,23 +105,10 @@
             justify-content: center;
             text-align: center;
         }
-        .quiz-option.selected {
-            background-color: #e0e7ff;
-            border-color: #6366f1;
-            color: #4338ca;
-        }
-        .quiz-option.correct {
-            background-color: #dcfce7;
-            border-color: #22c55e;
-            color: #15803d;
-        }
-        .quiz-option.wrong {
-            background-color: #fee2e2;
-            border-color: #ef4444;
-            color: #b91c1c;
-        }
+        .quiz-option.selected { background-color: #e0e7ff; border-color: #6366f1; color: #4338ca; }
+        .quiz-option.correct  { background-color: #dcfce7; border-color: #22c55e; color: #15803d; }
+        .quiz-option.wrong    { background-color: #fee2e2; border-color: #ef4444; color: #b91c1c; }
 
-        /* Matching Quiz Shake Animation */
         .shake-err {
             animation: shakeX 0.4s ease-in-out;
         }
@@ -144,23 +120,39 @@
             80% { transform: translateX(5px); }
         }
 
-        /* Sentence Builder Words */
         .builder-word {
             transition: all 0.2s ease;
             cursor: pointer;
             user-select: none;
         }
-        .builder-word:active {
-            transform: scale(0.95);
+        .builder-word:active { transform: scale(0.95); }
+
+        /* Match quiz: 아이템이 컨테이너를 넘지 않도록 */
+        .match-col {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0;
+            overflow: hidden;
+            gap: 1.5%;
         }
-        
-        .compact-card {
-            padding: 1.25rem !important;
-        }
-        @media (min-height: 700px) {
-            .compact-card {
-                padding: 1.5rem !important;
-            }
+
+        .match-item {
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            border-width: 2px;
+            border-radius: 0.75rem;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: clamp(0.7rem, 1.8vw, 1rem);
+            padding: 0 0.5rem;
+            transition: all 0.2s;
+            word-break: keep-all;
+            overflow: hidden;
         }
     </style>
 </head>
@@ -168,12 +160,10 @@
 
 <div id="app-container">
     
-    <!-- Top Progress Bar -->
     <div id="progress-container" class="w-full h-2 bg-slate-100 hidden">
         <div id="progress-bar" class="h-full bg-indigo-500 transition-all duration-300 w-0"></div>
     </div>
 
-    <!-- Pages Container -->
     <div id="pages-wrapper">
 
         <!-- Page 0: Cover -->
@@ -197,7 +187,7 @@
             </div>
         </div>
 
-        <!-- Page 2: Card + Text (Le nom de temps + 에) -->
+        <!-- Page 2: Card + Text -->
         <div id="page-2" class="page">
             <div class="content-area">
                 <div class="bg-indigo-50 border-2 border-indigo-100 shadow-sm rounded-2xl p-6 mb-8 w-full max-w-sm mx-auto flex items-center justify-center">
@@ -205,7 +195,6 @@
                         Le nom de temps + 에 <br><span class="text-sm text-indigo-600 font-medium">(particule de temps)</span>
                     </h2>
                 </div>
-                
                 <p class="text-content text-sm sm:text-base leading-snug">
                     Pour indiquer le moment où une action a lieu, on utilise la particule de temps « 에 ».
                 </p>
@@ -216,13 +205,11 @@
         <div id="page-3" class="page">
             <div class="content-area">
                 <div class="flex flex-col gap-4 w-full justify-center items-center">
-                    <!-- Card 1 -->
                     <button onclick="playCardAudio('https://res.cloudinary.com/de76i94ia/video/upload/v1772963900/%E1%84%8B%E1%85%A1%E1%84%8E%E1%85%B5%E1%86%B7_kpspqs.mp3')" class="card-btn bg-white border-2 border-slate-200 shadow-md rounded-3xl p-6 w-full max-w-xs flex flex-col items-center justify-center hover:bg-slate-50 relative">
                         <h3 class="text-4xl font-black text-slate-800 mb-2">아침</h3>
                         <p class="text-base text-slate-500 font-semibold mb-2">Matin</p>
                         <i class="ph-fill ph-play-circle text-3xl text-indigo-400"></i>
                     </button>
-                    <!-- Card 2 -->
                     <button onclick="playCardAudio('https://res.cloudinary.com/de76i94ia/video/upload/v1772963904/%E1%84%8B%E1%85%A1%E1%84%8E%E1%85%B5%E1%86%B7%E1%84%8B%E1%85%A6_xzsvlj.mp3')" class="card-btn bg-white border-2 border-slate-200 shadow-md rounded-3xl p-6 w-full max-w-xs flex flex-col items-center justify-center hover:bg-slate-50 relative">
                         <h3 class="text-4xl font-black text-slate-800 mb-2">아침에</h3>
                         <p class="text-base text-slate-500 font-semibold mb-2">le matin, dans la matinée</p>
@@ -232,11 +219,10 @@
             </div>
         </div>
 
-        <!-- Page 4: Speech Practice - 저는 아침에 공부를 해요. -->
+        <!-- Page 4: Speech Practice -->
         <div id="page-4" class="page">
             <div class="content-area">
                 <h2 class="text-xl sm:text-2xl font-bold text-slate-800 mb-6">Répétez après moi.</h2>
-                
                 <button onclick="playCardAudio('https://res.cloudinary.com/de76i94ia/video/upload/v1772963923/%E1%84%8C%E1%85%A5%E1%84%82%E1%85%B3%E1%86%AB_%E1%84%8B%E1%85%A1%E1%84%8E%E1%85%B5%E1%86%B7%E1%84%8B%E1%85%A6_%E1%84%80%E1%85%A9%E1%86%BC%E1%84%87%E1%85%AE%E1%84%85%E1%85%B3%E1%86%AF_un295s.mp3')" class="card-btn bg-white border-2 border-slate-200 shadow-md rounded-3xl p-8 mb-8 w-full max-w-sm flex flex-col items-center justify-center hover:bg-slate-50 relative mx-auto">
                     <h3 class="text-2xl sm:text-3xl font-black mb-3">
                         <span class="text-blue-600">저</span>는 <span class="text-green-600">아침에</span> <span class="text-purple-600">공부</span>를 <span class="text-red-500">해요.</span>
@@ -244,10 +230,9 @@
                     <p class="text-xs sm:text-sm font-medium mb-1 w-full text-center">
                         <span class="text-blue-600 font-bold">moi</span> <span class="text-green-600 font-bold">matin</span> <span class="text-purple-600 font-bold">étude</span> <span class="text-red-500 font-bold">faire</span>
                     </p>
-                    <p class="text-[0.95rem] text-slate-500 font-semibold w-full text-center mb-2 leading-tight">J’étudie dans la matinée.</p>
+                    <p class="text-[0.95rem] text-slate-500 font-semibold w-full text-center mb-2 leading-tight">J'étudie dans la matinée.</p>
                     <i class="ph-fill ph-play-circle text-3xl text-indigo-400"></i>
                 </button>
-
                 <div class="flex flex-col items-center h-28 justify-center">
                     <button id="mic-btn-4" onclick="toggleRecordSpeech(this, 'status-4', '저는 아침에 공부를 해요.', 50, 2, false, true)" class="bg-red-500 text-white rounded-full p-5 shadow-lg transition-transform hover:scale-105 active:scale-95 mb-2">
                         <i class="ph-fill ph-microphone text-3xl"></i>
@@ -262,13 +247,11 @@
         <div id="page-5" class="page">
             <div class="content-area">
                 <div class="flex flex-col gap-4 w-full justify-center items-center">
-                    <!-- Card 1 -->
                     <button onclick="playCardAudio('https://res.cloudinary.com/de76i94ia/video/upload/v1772963917/%E1%84%8C%E1%85%A5%E1%84%82%E1%85%A7%E1%86%A8_lssfjx.mp3')" class="card-btn bg-white border-2 border-slate-200 shadow-md rounded-3xl p-6 w-full max-w-xs flex flex-col items-center justify-center hover:bg-slate-50 relative">
                         <h3 class="text-4xl font-black text-slate-800 mb-2">저녁</h3>
                         <p class="text-base text-slate-500 font-semibold mb-2">Soir</p>
                         <i class="ph-fill ph-play-circle text-3xl text-indigo-400"></i>
                     </button>
-                    <!-- Card 2 -->
                     <button onclick="playCardAudio('https://res.cloudinary.com/de76i94ia/video/upload/v1772963920/%E1%84%8C%E1%85%A5%E1%84%82%E1%85%A7%E1%86%A8%E1%84%8B%E1%85%A6_aj91j4.mp3')" class="card-btn bg-white border-2 border-slate-200 shadow-md rounded-3xl p-6 w-full max-w-xs flex flex-col items-center justify-center hover:bg-slate-50 relative">
                         <h3 class="text-4xl font-black text-slate-800 mb-2">저녁에</h3>
                         <p class="text-base text-slate-500 font-semibold mb-2">le soir, dans la soirée</p>
@@ -278,11 +261,10 @@
             </div>
         </div>
 
-        <!-- Page 6: Speech Practice - 의사는 저녁에 일해요. -->
+        <!-- Page 6: Speech Practice -->
         <div id="page-6" class="page">
             <div class="content-area">
                 <h2 class="text-xl sm:text-2xl font-bold text-slate-800 mb-6">Répétez après moi.</h2>
-                
                 <button onclick="playCardAudio('https://res.cloudinary.com/de76i94ia/video/upload/v1772963907/%E1%84%8B%E1%85%B4%E1%84%89%E1%85%A1_%E1%84%8C%E1%85%A5%E1%84%82%E1%85%A7%E1%86%A8_%E1%84%8B%E1%85%B5%E1%86%AF_ffxgow.mp3')" class="card-btn bg-white border-2 border-slate-200 shadow-md rounded-3xl p-8 mb-8 w-full max-w-sm flex flex-col items-center justify-center hover:bg-slate-50 relative mx-auto">
                     <h3 class="text-2xl sm:text-3xl font-black mb-3">
                         <span class="text-blue-600">의사</span>는 <span class="text-green-600">저녁에</span> <span class="text-red-500">일해요.</span>
@@ -293,7 +275,6 @@
                     <p class="text-[0.95rem] text-slate-500 font-semibold w-full text-center mb-2 leading-tight">Le médecin travaille le soir.</p>
                     <i class="ph-fill ph-play-circle text-3xl text-indigo-400"></i>
                 </button>
-
                 <div class="flex flex-col items-center h-28 justify-center">
                     <button id="mic-btn-6" onclick="toggleRecordSpeech(this, 'status-6', '의사는 저녁에 일해요.', 50, 2, false, true)" class="bg-red-500 text-white rounded-full p-5 shadow-lg transition-transform hover:scale-105 active:scale-95 mb-2">
                         <i class="ph-fill ph-microphone text-3xl"></i>
@@ -308,7 +289,6 @@
         <div id="page-7" class="page">
             <div class="content-area">
                 <div class="flex flex-col gap-4 w-full justify-center items-center">
-                    <!-- Card 1 -->
                     <button onclick="playCardAudio('https://res.cloudinary.com/de76i94ia/video/upload/v1772963914/%E1%84%8B%E1%85%B5%E1%84%87%E1%85%A5%E1%86%AB%E1%84%8C%E1%85%AE_iemocc.mp3')" class="card-btn bg-white border-2 border-slate-200 shadow-md rounded-3xl p-6 w-full max-w-xs flex flex-col items-center justify-center hover:bg-slate-50 relative">
                         <h3 class="text-3xl font-black mb-2">
                             <span class="text-blue-600">이번</span> <span class="text-green-600">주</span>
@@ -319,7 +299,6 @@
                         <p class="text-base text-slate-500 font-semibold mb-2">Cette semaine</p>
                         <i class="ph-fill ph-play-circle text-3xl text-indigo-400"></i>
                     </button>
-                    <!-- Card 2 -->
                     <button onclick="playCardAudio('https://res.cloudinary.com/de76i94ia/video/upload/v1772963910/%E1%84%8B%E1%85%B5%E1%84%87%E1%85%A5%E1%86%AB_%E1%84%8C%E1%85%AE%E1%84%8B%E1%85%A6_jlxsod.mp3')" class="card-btn bg-white border-2 border-slate-200 shadow-md rounded-3xl p-6 w-full max-w-xs flex flex-col items-center justify-center hover:bg-slate-50 relative">
                         <h3 class="text-3xl font-black text-slate-800 mb-2">이번 주에</h3>
                         <p class="text-base text-slate-500 font-semibold mb-2">cette semaine</p>
@@ -329,22 +308,20 @@
             </div>
         </div>
 
-        <!-- Page 8: Speech Practice - 누나는 이번 주에 매일 운동을 해요. -->
+        <!-- Page 8: Speech Practice -->
         <div id="page-8" class="page">
             <div class="content-area">
                 <h2 class="text-xl sm:text-2xl font-bold text-slate-800 mb-6">Répétez après moi.</h2>
-                
                 <button onclick="playCardAudio('https://res.cloudinary.com/de76i94ia/video/upload/v1772963894/%E1%84%82%E1%85%AE%E1%84%82%E1%85%A1_%E1%84%8B%E1%85%B5%E1%84%87%E1%85%A5%E1%86%AB_%E1%84%8C%E1%85%AE_%E1%84%86%E1%85%A2%E1%84%8B%E1%85%B5%E1%86%AF_%E1%84%8B%E1%85%AE%E1%86%AB%E1%84%83%E1%85%A9%E1%86%BC%E1%84%8B%E1%85%B3%E1%86%AF_cekemy.mp3')" class="card-btn bg-white border-2 border-slate-200 shadow-md rounded-3xl p-6 mb-8 w-full max-w-sm flex flex-col items-center justify-center hover:bg-slate-50 relative mx-auto">
                     <h3 class="text-xl sm:text-2xl font-black mb-3 leading-tight">
                         <span class="text-blue-600">누나</span>는 <span class="text-green-600">이번 주에</span> <span class="text-purple-600">매일</span> <span class="text-orange-500">운동</span>을 <span class="text-red-500">해요.</span>
                     </h3>
                     <p class="text-xs sm:text-sm font-medium mb-1 w-full text-center">
-                        <span class="text-blue-600 font-bold">sœur</span> <span class="text-green-600 font-bold">cette semaine</span> <span class="text-purple-600 font-bold">tous les jours</span> <span class="text-orange-500 font-bold">l’exercice</span> <span class="text-red-500 font-bold">faire</span>
+                        <span class="text-blue-600 font-bold">sœur</span> <span class="text-green-600 font-bold">cette semaine</span> <span class="text-purple-600 font-bold">tous les jours</span> <span class="text-orange-500 font-bold">l'exercice</span> <span class="text-red-500 font-bold">faire</span>
                     </p>
-                    <p class="text-[0.95rem] text-slate-500 font-semibold w-full text-center mb-2 leading-tight">Ma sœur fais de l’exercice tous les jours cette semaine.</p>
+                    <p class="text-[0.95rem] text-slate-500 font-semibold w-full text-center mb-2 leading-tight">Ma sœur fais de l'exercice tous les jours cette semaine.</p>
                     <i class="ph-fill ph-play-circle text-3xl text-indigo-400"></i>
                 </button>
-
                 <div class="flex flex-col items-center h-28 justify-center">
                     <button id="mic-btn-8" onclick="toggleRecordSpeech(this, 'status-8', '누나는 이번 주에 매일 운동을 해요.', 50, 2, false, true)" class="bg-red-500 text-white rounded-full p-5 shadow-lg transition-transform hover:scale-105 active:scale-95 mb-2">
                         <i class="ph-fill ph-microphone text-3xl"></i>
@@ -357,22 +334,15 @@
 
         <!-- Page 9: Matching Quiz 1 -->
         <div id="page-9" class="page">
-            <div class="content-area w-full max-w-lg mx-auto flex flex-col justify-center">
-                
-                <div class="w-full flex flex-col items-center shrink-0">
-                    <h2 class="text-lg sm:text-xl font-bold text-slate-800 mb-6">Associez les mots correspondants.</h2>
+            <div class="content-area w-full max-w-lg mx-auto">
+                <h2 class="text-lg sm:text-xl font-bold text-slate-800 mb-3 shrink-0">Associez les mots correspondants.</h2>
+
+                <div class="flex flex-row w-full flex-1 min-h-0 justify-between gap-3 sm:gap-4 px-1 sm:px-2 overflow-hidden">
+                    <div id="match-left-9" class="match-col w-1/2"></div>
+                    <div id="match-right-9" class="match-col w-1/2"></div>
                 </div>
 
-                <!-- Match Container -->
-                <div class="flex flex-row w-full flex-1 min-h-0 justify-between gap-3 sm:gap-4 px-1 sm:px-2 mb-6">
-                    <!-- Left Column -->
-                    <div id="match-left-9" class="flex flex-col justify-center gap-2 sm:gap-3 w-1/2 h-full overflow-y-auto pb-1"></div>
-                    <!-- Right Column -->
-                    <div id="match-right-9" class="flex flex-col justify-center gap-2 sm:gap-3 w-1/2 h-full overflow-y-auto pb-1"></div>
-                </div>
-
-                <!-- Footer (Status only, unlocks automatically) -->
-                <div class="w-full flex flex-col items-center shrink-0 h-8 justify-end">
+                <div class="w-full flex flex-col items-center shrink-0 h-8 justify-end mt-2">
                     <p id="match-status-9" class="font-bold text-center text-sm leading-tight m-0"></p>
                 </div>
             </div>
@@ -382,17 +352,12 @@
         <div id="page-10" class="page">
             <div class="content-area w-full max-w-lg mx-auto">
                 <h2 class="text-lg sm:text-xl font-bold text-slate-800 mb-6">Dites-le en coréen.</h2>
-                
                 <div class="bg-white border-2 border-slate-200 shadow-md rounded-3xl p-6 sm:p-8 mb-6 w-full max-w-sm flex flex-col items-center justify-center mx-auto min-h-[10rem] relative">
                     <h3 class="text-lg sm:text-xl font-black text-slate-700 mb-4 text-center leading-tight">Quand est-ce que vous parlez anglais ?</h3>
-                    
-                    <!-- Hints Container -->
                     <div class="flex flex-col items-center justify-center h-12 w-full mt-1">
-                        <!-- Hint Text (Hidden initially, shown on 3rd try) -->
                         <p id="hint-text-10" class="text-indigo-600 font-bold text-sm sm:text-base mt-2 hidden text-center">언제 영어를 해요?</p>
                     </div>
                 </div>
-
                 <div class="flex flex-col items-center h-28 sm:h-32 justify-center mt-2">
                     <button id="mic-btn-10" onclick="toggleRecordSpeech(this, 'status-10', '언제 영어를 해요?', 70, 4, true, false)" class="bg-red-500 text-white rounded-full p-5 sm:p-6 shadow-xl transition-transform hover:scale-105 active:scale-95 mb-2 sm:mb-3">
                         <i class="ph-fill ph-microphone text-3xl sm:text-4xl"></i>
@@ -403,53 +368,37 @@
             </div>
         </div>
 
-        <!-- Page 11: Builder Quiz (French) - 저는 오늘 운전을 안 해요. -->
+        <!-- Page 11: Builder Quiz (French) -->
         <div id="page-11" class="page">
             <div class="content-area w-full max-w-lg mx-auto flex flex-col justify-center">
-                
-                <!-- 상단 텍스트 영역 -->
                 <div class="w-full flex flex-col items-center shrink-0">
                     <h2 class="text-base sm:text-lg font-bold text-slate-800 mb-3 sm:mb-4">Complétez la traduction.</h2>
                     <div class="flex flex-col items-center justify-center mb-3">
                         <p class="text-indigo-600 font-bold text-sm sm:text-base h-5">저는 오늘 운전을 안 해요.</p>
                     </div>
                 </div>
-
-                <!-- 입력창 (높이 절대 고정, 내부 넘침 허용/스크롤) -->
                 <div id="sentence-area-11" class="flex flex-wrap content-start gap-1.5 sm:gap-2 h-[4.5rem] sm:h-[5.5rem] w-full p-2 sm:p-3 bg-slate-50 border-2 border-slate-200 rounded-xl mb-3 shadow-inner shrink-0 overflow-y-auto"></div>
-
-                <!-- 보기 단어들 -->
                 <div id="word-bank-11" class="flex flex-wrap justify-center content-start gap-1.5 sm:gap-2 w-full mb-3 shrink-0"></div>
-
-                <!-- 하단 Valider 및 메시지 영역 (높이 고정, flex-1로 중앙 정렬 유도) -->
                 <div class="w-full flex flex-col items-center shrink-0 h-16 sm:h-20 justify-end pb-1">
                     <div class="flex-1 flex items-center justify-center w-full">
                         <p id="builder-status-11" class="font-bold text-center text-sm leading-tight m-0"></p>
                     </div>
                     <button id="builder-btn-11" onclick="checkBuilderQuiz(11)" class="bg-slate-800 hover:bg-slate-900 text-white font-bold py-2 sm:py-2.5 px-8 rounded-xl text-sm sm:text-base transition-colors w-full sm:w-auto shrink-0">Valider</button>
                 </div>
-                
             </div>
         </div>
 
         <!-- Page 12: Matching Quiz 2 -->
         <div id="page-12" class="page">
-            <div class="content-area w-full max-w-lg mx-auto flex flex-col justify-center">
-                
-                <div class="w-full flex flex-col items-center shrink-0">
-                    <h2 class="text-lg sm:text-xl font-bold text-slate-800 mb-6">Associez les mots correspondants.</h2>
+            <div class="content-area w-full max-w-lg mx-auto">
+                <h2 class="text-lg sm:text-xl font-bold text-slate-800 mb-3 shrink-0">Associez les mots correspondants.</h2>
+
+                <div class="flex flex-row w-full flex-1 min-h-0 justify-between gap-3 sm:gap-4 px-1 sm:px-2 overflow-hidden">
+                    <div id="match-left-12" class="match-col w-1/2"></div>
+                    <div id="match-right-12" class="match-col w-1/2"></div>
                 </div>
 
-                <!-- Match Container -->
-                <div class="flex flex-row w-full flex-1 min-h-0 justify-between gap-3 sm:gap-4 px-1 sm:px-2 mb-6">
-                    <!-- Left Column -->
-                    <div id="match-left-12" class="flex flex-col justify-center gap-2 sm:gap-3 w-1/2 h-full overflow-y-auto pb-1"></div>
-                    <!-- Right Column -->
-                    <div id="match-right-12" class="flex flex-col justify-center gap-2 sm:gap-3 w-1/2 h-full overflow-y-auto pb-1"></div>
-                </div>
-
-                <!-- Footer -->
-                <div class="w-full flex flex-col items-center shrink-0 h-8 justify-end">
+                <div class="w-full flex flex-col items-center shrink-0 h-8 justify-end mt-2">
                     <p id="match-status-12" class="font-bold text-center text-sm leading-tight m-0"></p>
                 </div>
             </div>
@@ -458,7 +407,6 @@
         <!-- Page 13: Builder Quiz (Korean Dictation) -->
         <div id="page-13" class="page">
             <div class="content-area w-full max-w-lg mx-auto flex flex-col justify-center">
-                
                 <div class="w-full flex flex-col items-center shrink-0">
                     <h2 class="text-base sm:text-lg font-bold text-slate-800 mb-3 sm:mb-4">Écoutez et complétez la phrase.</h2>
                     <div class="flex flex-col items-center justify-center mb-3">
@@ -467,25 +415,20 @@
                         </button>
                     </div>
                 </div>
-
                 <div id="sentence-area-13" class="flex flex-wrap content-start gap-1.5 sm:gap-2 h-[4.5rem] sm:h-[5.5rem] w-full p-2 sm:p-3 bg-slate-50 border-2 border-slate-200 rounded-xl mb-3 shadow-inner shrink-0 overflow-y-auto"></div>
-                
                 <div id="word-bank-13" class="flex flex-wrap justify-center content-start gap-1.5 sm:gap-2 w-full mb-3 shrink-0"></div>
-
                 <div class="w-full flex flex-col items-center shrink-0 h-16 sm:h-20 justify-end pb-1">
                     <div class="flex-1 flex items-center justify-center w-full">
                         <p id="builder-status-13" class="font-bold text-center text-sm leading-tight m-0"></p>
                     </div>
                     <button id="builder-btn-13" onclick="checkBuilderQuiz(13)" class="bg-slate-800 hover:bg-slate-900 text-white font-bold py-2 sm:py-2.5 px-8 rounded-xl text-sm sm:text-base transition-colors w-full sm:w-auto shrink-0">Valider</button>
                 </div>
-                
             </div>
         </div>
 
         <!-- Page 14: Builder Quiz (French long) -->
         <div id="page-14" class="page">
             <div class="content-area w-full max-w-lg mx-auto flex flex-col justify-center">
-                
                 <div class="w-full flex flex-col items-center shrink-0">
                     <h2 class="text-base sm:text-lg font-bold text-slate-800 mb-3 sm:mb-4">Complétez la traduction.</h2>
                     <div class="flex flex-col items-center justify-center mb-3">
@@ -495,18 +438,14 @@
                         <p id="hint-text-14" class="text-indigo-600 font-bold text-xs sm:text-sm h-4 opacity-0 transition-opacity leading-tight text-center">저는 아침에 요리를 안 해요. 저녁에 요리를 해요.</p>
                     </div>
                 </div>
-
                 <div id="sentence-area-14" class="flex flex-wrap content-start gap-1.5 sm:gap-2 h-[4.5rem] sm:h-[5.5rem] w-full p-2 sm:p-3 bg-slate-50 border-2 border-slate-200 rounded-xl mb-3 shadow-inner shrink-0 overflow-y-auto"></div>
-                
                 <div id="word-bank-14" class="flex flex-wrap justify-center content-start gap-1.5 sm:gap-2 w-full mb-3 shrink-0"></div>
-
                 <div class="w-full flex flex-col items-center shrink-0 h-16 sm:h-20 justify-end pb-1">
                     <div class="flex-1 flex items-center justify-center w-full">
                         <p id="builder-status-14" class="font-bold text-center text-sm leading-tight m-0"></p>
                     </div>
                     <button id="builder-btn-14" onclick="checkBuilderQuiz(14)" class="bg-slate-800 hover:bg-slate-900 text-white font-bold py-2 sm:py-2.5 px-8 rounded-xl text-sm sm:text-base transition-colors w-full sm:w-auto shrink-0">Valider</button>
                 </div>
-                
             </div>
         </div>
 
@@ -514,15 +453,12 @@
         <div id="page-15" class="page">
             <div class="content-area w-full max-w-lg mx-auto">
                 <h2 class="text-lg sm:text-xl font-bold text-slate-800 mb-6">Dites-le en coréen.</h2>
-                
                 <div class="bg-white border-2 border-slate-200 shadow-md rounded-3xl p-6 sm:p-8 mb-6 w-full max-w-sm flex flex-col items-center justify-center mx-auto min-h-[10rem] relative">
-                    <h3 class="text-lg sm:text-xl font-black text-slate-700 mb-4 text-center leading-tight">L’infirmier ne nage pas maintenant.</h3>
-                    
+                    <h3 class="text-lg sm:text-xl font-black text-slate-700 mb-4 text-center leading-tight">L'infirmier ne nage pas maintenant.</h3>
                     <div class="flex flex-col items-center justify-center h-12 w-full mt-1">
                         <p id="hint-text-15" class="text-indigo-600 font-bold text-sm sm:text-base mt-2 hidden text-center">간호사는 지금 수영을 안 해요.</p>
                     </div>
                 </div>
-
                 <div class="flex flex-col items-center h-28 sm:h-32 justify-center mt-2">
                     <button id="mic-btn-15" onclick="toggleRecordSpeech(this, 'status-15', '간호사는 지금 수영을 안 해요.', 70, 4, true, false)" class="bg-red-500 text-white rounded-full p-5 sm:p-6 shadow-xl transition-transform hover:scale-105 active:scale-95 mb-2 sm:mb-3">
                         <i class="ph-fill ph-microphone text-3xl sm:text-4xl"></i>
@@ -536,7 +472,6 @@
         <!-- Page 16: Single Quiz -->
         <div id="page-16" class="page">
             <div class="content-area w-full max-w-lg mx-auto flex flex-col justify-center">
-                
                 <div class="w-full flex flex-col items-center shrink-0">
                     <h2 class="text-lg sm:text-xl font-bold text-slate-800 mb-4 leading-tight">Choisissez la bonne traduction.</h2>
                     <div class="flex flex-col items-center justify-center mb-6">
@@ -546,13 +481,11 @@
                         <p id="hint-text-16" class="text-indigo-600 font-bold text-sm sm:text-base h-5 opacity-0 transition-opacity">저는 이번 주에 한국어를 공부해요.</p>
                     </div>
                 </div>
-
                 <div class="flex flex-col gap-3 w-full mb-6" id="quiz-16-options">
-                    <div class="quiz-option single-opt border-2 border-slate-200 rounded-xl p-3 sm:p-4 font-bold text-sm sm:text-base text-slate-700 bg-white" data-correct="true">J’étudie le coréen cette semaine.</div>
+                    <div class="quiz-option single-opt border-2 border-slate-200 rounded-xl p-3 sm:p-4 font-bold text-sm sm:text-base text-slate-700 bg-white" data-correct="true">J'étudie le coréen cette semaine.</div>
                     <div class="quiz-option single-opt border-2 border-slate-200 rounded-xl p-3 sm:p-4 font-bold text-sm sm:text-base text-slate-700 bg-white">Je vais en Corée pendant une semaine.</div>
                     <div class="quiz-option single-opt border-2 border-slate-200 rounded-xl p-3 sm:p-4 font-bold text-sm sm:text-base text-slate-700 bg-white">Je fais des exercices de coréen.</div>
                 </div>
-
                 <div class="w-full flex flex-col items-center shrink-0 h-16 sm:h-20 justify-end pb-1">
                     <div class="flex-1 flex items-center justify-center w-full">
                         <p id="quiz-16-status" class="font-bold text-center text-sm leading-tight m-0"></p>
@@ -569,12 +502,11 @@
                     <i class="ph-fill ph-check-circle text-5xl text-green-500"></i>
                 </div>
                 <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-800 mb-6">Bon travail !</h1>
-                
                 <p class="text-content text-green-900 font-medium mb-4">
                     Vous avez suivi toutes les leçons de « Parler des activités ». Lorsque vous écoutez ou lisez du coréen, soyez attentifs pour repérer les expressions que nous avons apprises, et n'hésitez pas à les utiliser vous-même à l'oral ou à l'écrit !
                 </p>
                 <p class="text-content text-green-900 font-medium font-bold">
-                    Si vous souhaitez vous entraîner davantage à écouter et à parler en coréen, d’autres activités vous attendent dans le Chapitre 5.<br><br>감사합니다, 안녕히 가세요!
+                    Si vous souhaitez vous entraîner davantage à écouter et à parler en coréen, d'autres activités vous attendent dans le Chapitre 5.<br><br>감사합니다, 안녕히 가세요!
                 </p>
             </div>
         </div>
@@ -594,17 +526,12 @@
 </div>
 
 <script>
-    /* =========================================
-       State Management & Navigation
-    ========================================= */
     const TOTAL_PAGES = 18;
     let currentPage = 0;
     
-    // Page Lock State
     const completedPages = new Set();
     const interactivePages = [4, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16];
     
-    // Audio Context & Players
     let currentAudio = null;
     let audioTimeoutId = null;
     let correctSound = null;
@@ -612,15 +539,13 @@
     let errorSound = null;
     let transitionSynth = null;
 
-    // Quiz & Speech State
     let quizAttempts = 0;
     let activeRecorder = null;
     let recordingTimeout = null;
 
-    // Sentence Builder State
     const builderState = {
         11: {
-            options: ["cuisine", "conduite", "ne", "fais", "je", "aujourd’hui", "conduire", "pas", "sais", "travaille", "conduis", "matin"],
+            options: ["cuisine", "conduite", "ne", "fais", "je", "aujourd'hui", "conduire", "pas", "sais", "travaille", "conduis", "matin"],
             answer: ["Je", "ne", "conduis", "pas", "aujourd'hui"], 
             validAnswers: ["jeneconduispasaujourdhui", "aujourdhuijeneconduispas"],
             selected: [],
@@ -642,7 +567,6 @@
         }
     };
 
-    // Match Quiz State
     const matchData = {
         9: {
             left: ["운동", "공부", "일", "운전", "요리", "청소", "수영", "식사"],
@@ -651,8 +575,8 @@
         },
         12: {
             left: ["아침", "이번 주", "올해", "오늘", "지금", "저녁", "언제"],
-            right: ["matin", "cette semaine", "cette année", "aujourd’hui", "maintenant", "soir", "quand"],
-            pairs: {"아침":"matin", "이번 주":"cette semaine", "올해":"cette année", "오늘":"aujourd’hui", "지금":"maintenant", "저녁":"soir", "언제":"quand"}
+            right: ["matin", "cette semaine", "cette année", "aujourd'hui", "maintenant", "soir", "quand"],
+            pairs: {"아침":"matin", "이번 주":"cette semaine", "올해":"cette année", "오늘":"aujourd'hui", "지금":"maintenant", "저녁":"soir", "언제":"quand"}
         }
     };
     
@@ -661,14 +585,12 @@
         12: { matched: [], leftSel: null, rightSel: null, leftOrder: [], rightOrder: [], initialized: false }
     };
 
-    // Mapping of page texts auto-play audios
     const pageTextAudios = {
         1: 'https://res.cloudinary.com/de76i94ia/video/upload/v1772963880/9-1_pb3bvn.mp3',
         2: 'https://res.cloudinary.com/de76i94ia/video/upload/v1772963881/9-2_npwt2f.mp3',
         17: 'https://res.cloudinary.com/de76i94ia/video/upload/v1772963885/9-3_k0iojg.mp3'
     };
 
-    // Utility: Shuffle Array
     function shuffleArray(array) {
         let arr = array.slice();
         for (let i = arr.length - 1; i > 0; i--) {
@@ -694,16 +616,12 @@
         await initAudioContext();
         document.getElementById('progress-container').classList.remove('hidden');
         document.getElementById('bottom-nav').classList.remove('hidden');
-        
         if (transitionSynth) transitionSynth.triggerAttackRelease('C6', '0.05s');
-        
-        // Render Initial States
         renderBuilder(11);
         renderBuilder(13);
         renderBuilder(14);
         initMatchQuiz(9);
         initMatchQuiz(12);
-
         changePage(1);
     }
 
@@ -724,13 +642,8 @@
         if (dir !== 0 && transitionSynth && currentPage > 0) {
             transitionSynth.triggerAttackRelease('C6', '0.05s');
         }
-
-        if(currentAudio) {
-            currentAudio.pause();
-            currentAudio.currentTime = 0;
-        }
+        if(currentAudio) { currentAudio.pause(); currentAudio.currentTime = 0; }
         if(audioTimeoutId) clearTimeout(audioTimeoutId);
-
         if (activeRecorder && activeRecorder.state === 'recording') {
             activeRecorder.stop();
             clearTimeout(recordingTimeout);
@@ -740,7 +653,6 @@
         if(oldPage) oldPage.classList.remove('active');
 
         currentPage += dir;
-        
         if(currentPage < 0) currentPage = 0;
         if(currentPage >= TOTAL_PAGES) currentPage = TOTAL_PAGES - 1;
 
@@ -769,13 +681,9 @@
 
         if (pageTextAudios[currentPage]) {
             audioTimeoutId = setTimeout(() => {
-                if(currentAudio) {
-                    currentAudio.pause();
-                    currentAudio.currentTime = 0;
-                }
+                if(currentAudio) { currentAudio.pause(); currentAudio.currentTime = 0; }
                 currentAudio = new Audio(pageTextAudios[currentPage]);
                 const playPromise = currentAudio.play();
-                
                 if (playPromise !== undefined) {
                     playPromise.catch(error => { console.warn("Auto-play interrupted:", error); });
                 }
@@ -785,13 +693,8 @@
 
     function playCardAudio(url) {
         if (url === '#' || !url) return;
-        
         if(audioTimeoutId) clearTimeout(audioTimeoutId);
-        
-        if(currentAudio) {
-            currentAudio.pause();
-            currentAudio.currentTime = 0;
-        }
+        if(currentAudio) { currentAudio.pause(); currentAudio.currentTime = 0; }
         currentAudio = new Audio(url);
         const playPromise = currentAudio.play();
         if (playPromise !== undefined) {
@@ -800,9 +703,7 @@
     }
 
     function triggerLessonComplete() {
-        if (completionSynth) {
-            completionSynth.triggerAttackRelease(["C5", "E5", "G5", "C6"], "4n");
-        }
+        if (completionSynth) completionSynth.triggerAttackRelease(["C5", "E5", "G5", "C6"], "4n");
         window.parent.postMessage({ type: 'lesson_complete' }, '*');
     }
 
@@ -827,17 +728,14 @@
         leftContainer.innerHTML = '';
         rightContainer.innerHTML = '';
 
-        // flex-1을 주어 모바일에서 남는 세로 여백을 똑같이 나누어 가지도록 하고, flex-col 및 justify-center로 중앙 정렬, 가독성 높은 폰트/패딩 적용
-        const itemClassesBase = "flex-1 flex flex-col items-center justify-center border-2 rounded-xl p-2 sm:p-3 text-center cursor-pointer text-sm sm:text-base font-bold transition-all shadow-sm w-full min-h-[3rem]";
-
         state.leftOrder.forEach(word => {
             const el = document.createElement('div');
             if (state.matched.includes(word)) {
-                el.className = `${itemClassesBase} opacity-40 bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed`;
+                el.className = 'match-item opacity-40 bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed';
             } else if (state.leftSel === word) {
-                el.className = `${itemClassesBase} bg-indigo-100 border-indigo-500 text-indigo-700 transform scale-95`;
+                el.className = 'match-item bg-indigo-100 border-indigo-500 text-indigo-700 scale-95';
             } else {
-                el.className = `${itemClassesBase} bg-white border-slate-200 text-slate-700 hover:border-indigo-300`;
+                el.className = 'match-item bg-white border-slate-200 text-slate-700 hover:border-indigo-300';
                 el.onclick = () => handleMatchClick(pageId, 'left', word);
             }
             el.innerText = word;
@@ -847,15 +745,13 @@
 
         state.rightOrder.forEach(word => {
             const el = document.createElement('div');
-            // check if this right word belongs to any matched left word
             const isMatched = state.matched.some(leftWord => matchData[pageId].pairs[leftWord] === word);
-            
             if (isMatched) {
-                el.className = `${itemClassesBase} opacity-40 bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed`;
+                el.className = 'match-item opacity-40 bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed';
             } else if (state.rightSel === word) {
-                el.className = `${itemClassesBase} bg-indigo-100 border-indigo-500 text-indigo-700 transform scale-95`;
+                el.className = 'match-item bg-indigo-100 border-indigo-500 text-indigo-700 scale-95';
             } else {
-                el.className = `${itemClassesBase} bg-white border-slate-200 text-slate-700 hover:border-indigo-300`;
+                el.className = 'match-item bg-white border-slate-200 text-slate-700 hover:border-indigo-300';
                 el.onclick = () => handleMatchClick(pageId, 'right', word);
             }
             el.innerText = word;
@@ -867,22 +763,18 @@
     function handleMatchClick(pageId, side, word) {
         if (completedPages.has(pageId)) return;
         const state = matchState[pageId];
-        
         if (side === 'left') state.leftSel = word;
         else state.rightSel = word;
-        
         renderMatchQuiz(pageId);
 
         if (state.leftSel && state.rightSel) {
             const isCorrect = matchData[pageId].pairs[state.leftSel] === state.rightSel;
-            
             if (isCorrect) {
                 if(correctSound) correctSound.triggerAttackRelease('C5', '0.1s');
                 state.matched.push(state.leftSel);
                 state.leftSel = null;
                 state.rightSel = null;
                 renderMatchQuiz(pageId);
-                
                 if (state.matched.length === matchData[pageId].left.length) {
                     document.getElementById(`match-status-${pageId}`).innerText = "Excellent !";
                     document.getElementById(`match-status-${pageId}`).className = "text-green-500 text-sm sm:text-base font-bold text-center leading-tight mb-2";
@@ -892,10 +784,8 @@
                 if(errorSound) errorSound.triggerAttackRelease('C4', '0.1s');
                 const leftEl = document.getElementById(`match-${pageId}-left-${state.leftSel}`);
                 const rightEl = document.getElementById(`match-${pageId}-right-${state.rightSel}`);
-                
                 leftEl.classList.add('shake-err', 'bg-red-100', 'border-red-500', 'text-red-700');
                 rightEl.classList.add('shake-err', 'bg-red-100', 'border-red-500', 'text-red-700');
-                
                 setTimeout(() => {
                     state.leftSel = null;
                     state.rightSel = null;
@@ -918,7 +808,6 @@
 
     function checkSingleQuiz(pageId, isInfinite = false) {
         if (completedPages.has(pageId)) return;
-
         quizAttempts++;
         const options = document.querySelectorAll(`#quiz-${pageId}-options .single-opt`);
         const statusEl = document.getElementById(`quiz-${pageId}-status`);
@@ -932,7 +821,6 @@
         }
 
         const isCorrect = selectedOpt.dataset.correct === "true";
-
         if (isCorrect) {
             if(correctSound) correctSound.triggerAttackRelease('C5', '0.1s');
             statusEl.innerText = "Très bien !";
@@ -945,20 +833,12 @@
             unlockNextButton(pageId);
         } else {
             if(errorSound) errorSound.triggerAttackRelease('C4', '0.1s');
-            
-            if (quizAttempts >= 2 && hintEl) {
-                hintEl.classList.remove('opacity-0');
-            }
-            
-            if (!isInfinite && quizAttempts >= 999) { 
-                // Keep trying
-            } else {
-                statusEl.innerText = "Incorrect. Réessayez !";
-                statusEl.className = "font-bold text-center text-red-500 text-sm leading-tight m-0";
-                selectedOpt.classList.remove('selected');
-                selectedOpt.classList.add('wrong');
-                setTimeout(() => selectedOpt.classList.remove('wrong'), 1000);
-            }
+            if (quizAttempts >= 2 && hintEl) hintEl.classList.remove('opacity-0');
+            statusEl.innerText = "Incorrect. Réessayez !";
+            statusEl.className = "font-bold text-center text-red-500 text-sm leading-tight m-0";
+            selectedOpt.classList.remove('selected');
+            selectedOpt.classList.add('wrong');
+            setTimeout(() => selectedOpt.classList.remove('wrong'), 1000);
         }
     }
 
@@ -969,15 +849,12 @@
         const state = builderState[pageId];
         const sentenceArea = document.getElementById(`sentence-area-${pageId}`);
         const wordBank = document.getElementById(`word-bank-${pageId}`);
-        
+        if (!sentenceArea || !wordBank) return;
         sentenceArea.innerHTML = '';
         wordBank.innerHTML = '';
 
-        // Dynamic class scaling
         const wordCount = state.selected.length;
-        const selectedClasses = wordCount >= 4 
-            ? "px-2 py-1 text-xs sm:text-sm" 
-            : "px-3 py-1.5 sm:px-4 sm:py-2 text-sm sm:text-base";
+        const selectedClasses = wordCount >= 4 ? "px-2 py-1 text-xs sm:text-sm" : "px-3 py-1.5 sm:px-4 sm:py-2 text-sm sm:text-base";
 
         state.selected.forEach((word) => {
             const wordEl = document.createElement('div');
@@ -987,18 +864,14 @@
             sentenceArea.appendChild(wordEl);
         });
 
-        // 14페이지 같이 단어가 많은 경우를 위해 bankClasses 조정
         const totalWords = state.options.length;
-        const bankClasses = totalWords >= 12
-            ? "px-2 py-1.5 text-xs sm:text-sm" 
-            : "px-3 py-1.5 sm:px-4 sm:py-2 text-sm sm:text-base";
+        const bankClasses = totalWords >= 12 ? "px-2 py-1.5 text-xs sm:text-sm" : "px-3 py-1.5 sm:px-4 sm:py-2 text-sm sm:text-base";
 
         let usedCounts = {};
         state.selected.forEach(w => { usedCounts[w] = (usedCounts[w] || 0) + 1; });
 
         state.options.forEach((word) => {
             const wordEl = document.createElement('div');
-            
             if (usedCounts[word] > 0) {
                 usedCounts[word]--;
                 wordEl.className = `rounded-lg text-transparent bg-slate-200 border border-transparent select-none ${bankClasses}`;
@@ -1015,26 +888,21 @@
     function toggleBuilderWord(pageId, word, isAdding) {
         const state = builderState[pageId];
         if (completedPages.has(pageId)) return;
-
-        if (isAdding) {
-            state.selected.push(word);
-        } else {
+        if (isAdding) state.selected.push(word);
+        else {
             const idx = state.selected.indexOf(word);
             if (idx > -1) state.selected.splice(idx, 1);
         }
         renderBuilder(pageId);
-        
         const statusEl = document.getElementById(`builder-status-${pageId}`);
         if(statusEl) statusEl.innerText = "";
     }
 
     function checkBuilderQuiz(pageId) {
         if (completedPages.has(pageId)) return;
-        
         const state = builderState[pageId];
         const statusEl = document.getElementById(`builder-status-${pageId}`);
         const hintEl = document.getElementById(`hint-text-${pageId}`);
-        
         state.attempts++;
 
         const currentAnswer = state.selected.join('').toLowerCase().replace(/[^a-z0-9가-힣]/g, '');
@@ -1054,10 +922,8 @@
             unlockNextButton(pageId);
         } else {
             if(errorSound) errorSound.triggerAttackRelease('C4', '0.1s');
-            
             const revealHintAt = (pageId === 14) ? 3 : -1; 
             const revealAnsAt = 3;
-            
             if (state.attempts === revealHintAt && hintEl) {
                 statusEl.innerText = "Incorrect. Voici un indice.";
                 statusEl.className = "font-bold text-center text-orange-500 text-sm leading-tight m-0";
@@ -1085,7 +951,6 @@
     ========================================= */
     function resetQuizUI(pageId) {
         if (completedPages.has(pageId)) return;
-
         if(pageId === 16) {
             document.querySelectorAll(`#quiz-16-options .single-opt`).forEach(opt => {
                 opt.classList.remove('selected', 'correct', 'wrong');
@@ -1098,7 +963,6 @@
             const hint = document.getElementById(`hint-text-16`);
             if(hint) hint.classList.add('opacity-0');
         }
-
         if([11, 13, 14].includes(pageId)) {
             builderState[pageId].selected = [];
             builderState[pageId].attempts = 0;
@@ -1110,7 +974,6 @@
             const hint = document.getElementById(`hint-text-${pageId}`);
             if(hint) hint.classList.add('opacity-0');
         }
-
         if([4, 6, 8, 10, 15].includes(pageId)) {
             const btn = document.getElementById(`mic-btn-${pageId}`);
             if(btn) resetMicBtnState(btn);
@@ -1118,11 +981,9 @@
             if(status) { status.innerText = ""; status.className = "text-slate-500 font-medium h-6 text-sm"; }
             const transcript = document.getElementById(`transcript-${pageId}`);
             if(transcript) transcript.innerText = "";
-
             if(pageId === 10) { document.getElementById('hint-text-10').classList.add('hidden'); }
             if(pageId === 15) { document.getElementById('hint-text-15').classList.add('hidden'); }
         }
-        
         if([9, 12].includes(pageId)) {
             matchState[pageId].matched = [];
             matchState[pageId].leftSel = null;
@@ -1148,12 +1009,8 @@
 
     async function toggleRecordSpeech(btn, statusId, referenceText, threshold, maxTries, forcePassOnMax, mustRepeat) {
         const statusEl = document.getElementById(statusId);
-        
         if(audioTimeoutId) clearTimeout(audioTimeoutId);
-        if(currentAudio) {
-            currentAudio.pause();
-            currentAudio.currentTime = 0;
-        }
+        if(currentAudio) { currentAudio.pause(); currentAudio.currentTime = 0; }
         
         if (btn.classList.contains('recording-pulse')) {
             if (activeRecorder && activeRecorder.state === 'recording') {
@@ -1167,14 +1024,12 @@
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             const mediaRecorder = new MediaRecorder(stream);
             let audioChunks = [];
-
             mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
             
             mediaRecorder.onstop = async () => {
                 btn.classList.remove('recording-pulse');
                 btn.innerHTML = `<i class="ph ph-spinner animate-spin ${btn.id.includes('10') || btn.id.includes('15') ? 'text-4xl' : 'text-3xl'}"></i>`;
                 statusEl.innerText = "";
-                
                 const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
                 const reader = new FileReader();
                 reader.readAsDataURL(audioBlob);
@@ -1182,7 +1037,6 @@
                     const base64data = reader.result.split(',')[1];
                     await processSpeechApi(base64data, referenceText, threshold, maxTries, forcePassOnMax, mustRepeat, btn, statusEl);
                 }
-                
                 stream.getTracks().forEach(track => track.stop());
             };
 
@@ -1228,20 +1082,12 @@
         
         if (recognizedText) {
             const cleanRec = recognizedText.replace(/[\s\.\?]/g, '');
-            
-            // 10페이지: 언제 영어를 해요 / 영어를 언제 해요 (조사 '를' 생략 시 오답 처리)
             if (btn.id === 'mic-btn-10') {
                 const valid10 = ["언제영어를해요", "영어를언제해요"];
-                if (valid10.some(ans => cleanRec.includes(ans))) {
-                    score = Math.max(score, 100);
-                }
-            } 
-            // 15페이지: 간호사는 지금 수영을 안 해요
-            else if (btn.id === 'mic-btn-15') {
+                if (valid10.some(ans => cleanRec.includes(ans))) score = Math.max(score, 100);
+            } else if (btn.id === 'mic-btn-15') {
                 const valid15 = ["간호사는지금수영을안해요", "간호사는수영을지금안해요", "지금간호사는수영을안해요"];
-                if (valid15.some(ans => cleanRec.includes(ans))) {
-                    score = Math.max(score, 100);
-                }
+                if (valid15.some(ans => cleanRec.includes(ans))) score = Math.max(score, 100);
             }
         }
 
@@ -1255,7 +1101,6 @@
         let isLastAttempt = quizAttempts >= maxTries;
         let stopNow = isPass && !mustRepeat;
 
-        // Custom hint logic for specific pages
         if (btn.id === 'mic-btn-10' || btn.id === 'mic-btn-15') {
             const hintId = btn.id.replace('mic-btn', 'hint-text');
             if (isPass || quizAttempts >= 3) {
@@ -1274,13 +1119,10 @@
                     else msg = `Passez à la page suivante.`;
                 }
             }
-            
             statusEl.innerHTML = msg;
             statusEl.className = (isPass || (isLastAttempt && forcePassOnMax)) ? 'text-green-600 font-bold h-6 text-sm' : 'text-blue-600 font-bold h-6 text-sm';
-            
             disableMicBtn(btn, isPass || (isLastAttempt && forcePassOnMax));
             unlockNextButton(currentPage);
-            
             if (isPass || (isLastAttempt && forcePassOnMax)) {
                 if(correctSound && !(isLastAttempt && forcePassOnMax && !isPass)) correctSound.triggerAttackRelease('C5', '0.2s');
             } else {
@@ -1290,16 +1132,13 @@
             if (score >= threshold) msg = `Très bien! (Score: ${score}). Répétez encore une fois.`;
             else if (score >= 30) msg = `On y est presque. Répétez encore une fois.`;
             else msg = `Répétez encore une fois.`;
-            
             statusEl.innerHTML = msg;
             statusEl.className = isPass ? 'text-green-600 font-bold h-6 text-sm' : 'text-orange-500 font-bold h-6 text-sm';
-            
             if (isPass) {
                 if(correctSound) correctSound.triggerAttackRelease('C5', '0.2s');
             } else {
                 if(errorSound) errorSound.triggerAttackRelease('C4', '0.1s');
             }
-            
             resetMicBtnState(btn);
         }
     }
@@ -1309,7 +1148,6 @@
         btn.className = `text-white rounded-full ${btn.id.includes('10') || btn.id.includes('15') ? 'p-6' : 'p-5'} shadow-none mb-2 flex items-center justify-center cursor-not-allowed transition-colors ${success ? 'bg-green-500' : 'bg-slate-400'}`;
         btn.innerHTML = `<i class="ph-bold ph-check ${btn.id.includes('10') || btn.id.includes('15') ? 'text-4xl' : 'text-3xl'}"></i>`;
     }
-
 </script>
 </body>
 </html>
