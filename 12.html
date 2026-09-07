@@ -244,6 +244,8 @@
     let activeRecorder = null;
     let recordingTimeout = null;
     let isDiscarding = false; // 녹음 취소 플래그 추가
+    let isProcessing = false; // Gemini 분석 중 재녹음 방지 플래그
+    let activeStream = null; // 현재 마이크 스트림 참조
 
     const dialogueScript = {
         1: {
@@ -307,6 +309,7 @@
         }
         
         if (activeRecorder && activeRecorder.state === 'recording') {
+            isDiscarding = true; // 페이지 이탈로 인한 종료는 전송 없이 폐기
             activeRecorder.stop();
             clearTimeout(recordingTimeout);
         }
@@ -479,6 +482,9 @@
     async function toggleChatMic(btn) {
         const statusEl = document.getElementById('chat-status');
         
+        // Gemini 분석이 진행 중인 경우 모든 조작 차단 (경합 방지)
+        if (isProcessing) return;
+
         if (btn.classList.contains('recording-pulse')) {
             if (activeRecorder && activeRecorder.state === 'recording') {
                 isDiscarding = false; // 정상적인 종료 (API 전송 O)
@@ -490,17 +496,40 @@
 
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            activeStream = stream;
             const mediaRecorder = new MediaRecorder(stream);
             let audioChunks = [];
 
             mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
             
+            // 마이크가 외부에서 끊긴 경우(블루투스 끊김 등) 즉시 녹음 종료 후 평가 진행
+            stream.getTracks().forEach(track => {
+                track.onended = () => {
+                    if (mediaRecorder.state === 'recording' && !isDiscarding && !isProcessing) {
+                        mediaRecorder.stop();
+                        clearTimeout(recordingTimeout);
+                    }
+                };
+            });
+            mediaRecorder.onerror = () => {
+                if (mediaRecorder.state === 'recording') {
+                    mediaRecorder.stop();
+                    clearTimeout(recordingTimeout);
+                }
+            };
+            
             mediaRecorder.onstop = async () => {
+                // 마이크 끊김 즉시 스트림 해제 (분석/폐기 여부와 무관하게 가장 먼저 실행)
+                stream.getTracks().forEach(track => track.stop());
+                if (activeStream === stream) activeStream = null;
+
                 // 일시정지 버튼으로 취소된 경우 백엔드로 전송하지 않고 종료
                 if (isDiscarding) {
                     isDiscarding = false;
                     return; 
                 }
+
+                isProcessing = true; // 분석 시작부터 다음 질문 활성화까지 재녹음 차단
 
                 btn.classList.remove('recording-pulse');
                 btn.innerHTML = `<i class="ph ph-spinner animate-spin text-3xl"></i>`;
@@ -514,10 +543,12 @@
                 reader.readAsDataURL(audioBlob);
                 reader.onloadend = async () => {
                     const base64data = reader.result.split(',')[1];
-                    await processGeminiChat(base64data, mimeType);
+                    try {
+                        await processGeminiChat(base64data, mimeType);
+                    } finally {
+                        isProcessing = false;
+                    }
                 }
-                
-                stream.getTracks().forEach(track => track.stop());
             };
 
             mediaRecorder.start();
