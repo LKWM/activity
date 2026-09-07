@@ -356,15 +356,21 @@
         }, 50);
     }
 
-    function addSeowonBubble(text) {
+    function addSeowonBubble(text, fr) {
         const chatBox = document.getElementById('chat-box');
+        // 👀 버튼: 턴 수와 상관없이 클릭하면 Traduction 표시/숨김
+        const tradToggle = fr ? `
+                    <button onclick="const p=this.nextElementSibling; const ic=this.firstElementChild; const hidden=p.classList.toggle('hidden'); ic.className = hidden ? 'ph ph-eye text-base' : 'ph ph-eye-slash text-base';" class="mt-1 p-1 rounded text-slate-400 hover:text-indigo-500 transition-colors">
+                        <i class="ph ph-eye text-base"></i>
+                    </button>
+                    <p class="hidden font-bold mt-1 border-t border-slate-100 pt-1 text-xs sm:text-sm text-slate-500">Traduction : ${fr}</p>` : '';
         const bubbleHTML = `
             <div class="flex w-full justify-start bubble-animate">
                 <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-xs mr-2 shrink-0 border border-indigo-200 mt-1">
                     서원
                 </div>
                 <div class="bg-white border border-slate-200 text-slate-800 p-3 sm:p-4 rounded-b-2xl rounded-tr-2xl text-sm sm:text-base shadow-sm max-w-[80%] text-left leading-relaxed">
-                    ${text}
+                    ${text}${tradToggle}
                 </div>
             </div>
         `;
@@ -385,11 +391,12 @@
         scrollChatToBottom();
     }
 
-    function addFeedbackBubble(explanation) {
+    function addFeedbackBubble(transcript, explanation) {
         const chatBox = document.getElementById('chat-box');
         const bubbleHTML = `
             <div class="flex w-full justify-center bubble-animate my-1">
                 <div class="bg-orange-50 border border-orange-200 text-orange-800 p-3 rounded-xl text-xs sm:text-sm shadow-sm w-[90%] text-left">
+                    <p class="font-bold border-b border-orange-200 pb-1 mb-1">${transcript}</p>
                     <p>${explanation}</p>
                 </div>
             </div>
@@ -447,7 +454,7 @@
         document.getElementById('progress-bar').style.width = `${(id / totalTurns) * 100}%`;
         
         // Add Seowon's text bubble
-        addSeowonBubble(turnData.text);
+        addSeowonBubble(turnData.text, turnData.fr);
         
         // Play Audio
         if(currentAudio) { currentAudio.pause(); }
@@ -671,7 +678,8 @@
         }
 
         // 1. Show User Bubble (전사값 표시 — Pass 마커/마크다운 잔여물은 절대 화면에 노출하지 않음)
-        addUserBubble(cleanUserText(transcript));
+        const displayTranscript = cleanUserText(transcript);
+        addUserBubble(displayTranscript);
 
         // 2. Evaluate Pass or Fail
         let forcePass = turnAttempts >= 2;
@@ -693,7 +701,7 @@
             if(errorSound) errorSound.triggerAttackRelease('C4', '0.1s');
             let cleanEval = cleanUserText(evaluation);
             if(!cleanEval) cleanEval = "Veuillez répéter votre réponse.";
-            addFeedbackBubble(cleanEval);
+            addFeedbackBubble(displayTranscript, cleanEval);
 
             disableMicWait();
 
@@ -706,7 +714,7 @@
             if(errorSound) errorSound.triggerAttackRelease('C4', '0.1s');
             let cleanEval = cleanUserText(evaluation);
             if(!cleanEval) cleanEval = "Veuillez répéter votre réponse.";
-            addFeedbackBubble(cleanEval);
+            addFeedbackBubble(displayTranscript, cleanEval);
 
             disableMicWait();
 
