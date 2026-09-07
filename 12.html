@@ -325,8 +325,12 @@
         const newPage = document.getElementById(`page-${currentPage}`);
         if(newPage) newPage.classList.add('active');
 
-        const percent = ((currentPage) / (TOTAL_PAGES - 1)) * 100;
-        document.getElementById('progress-bar').style.width = `${percent}%`;
+        // 진행바: 대화 챗 페이지(page-2)에서는 playTurn이 턴 진행률로 관리하므로 챗 외 페이지만 갱신
+        if (currentPage === TOTAL_PAGES - 1) {
+            document.getElementById('progress-bar').style.width = '100%';
+        } else if (currentPage < 2) {
+            document.getElementById('progress-bar').style.width = '0%';
+        }
         
         if (currentPage === TOTAL_PAGES - 1) {
             if (completionSynth) completionSynth.triggerAttackRelease(["C5", "E5", "G5", "C6"], "4n");
@@ -420,6 +424,10 @@
         const turnData = dialogueScript[id];
         
         disableMicWait();
+        
+        // 상단 진행바: 턴 수를 기준으로 진행률 갱신 (총 턴 수 대비 현재 턴)
+        const totalTurns = Object.keys(dialogueScript).length;
+        document.getElementById('progress-bar').style.width = `${(id / totalTurns) * 100}%`;
         
         // Add Seowon's text bubble
         addSeowonBubble(turnData.text);
@@ -623,7 +631,17 @@
             if (tMatch && tMatch[1]) transcript = tMatch[1].trim();
             if (eMatch && eMatch[1]) {
                 evaluation = eMatch[1].trim();
-                if (evaluation.includes('<Pass>')) isPass = true;
+            }
+            
+            // <Pass> 판정: 공백·마크다운 등 표현 Variants를 모두 인정 (예: "**< Pass >**")
+            const normalizedEval = evaluation.replace(/[^a-zA-Z<>]/g, '').toLowerCase();
+            if (normalizedEval.includes('<pass>') || normalizedEval === 'pass') {
+                isPass = true;
+            }
+            // [평가] 영역 밖에 <Pass>가 단독으로 나온 경우도 통과로 인정
+            if (!isPass) {
+                const normalizedAll = resultText.replace(/[^a-zA-Z<>]/g, '').toLowerCase();
+                if (normalizedAll.includes('<pass>')) isPass = true;
             }
 
             if (!transcript) transcript = "???";
@@ -635,53 +653,86 @@
             isPass = false;
         }
 
-        // 1. Show User Bubble
-        addUserBubble(transcript);
+        // 1. Show User Bubble (전사값 표시 — Pass 마커/마크다운 잔여물은 절대 화면에 노출하지 않음)
+        addUserBubble(cleanUserText(transcript));
 
         // 2. Evaluate Pass or Fail
         let forcePass = turnAttempts >= 2;
 
-        if (isPass || forcePass) {
+        if (isPass) {
+            // Pass: 통과 효과음 후 다음 질문으로 이동
             if(correctSound) correctSound.triggerAttackRelease('C5', '0.2s');
             const statusEl = document.getElementById('chat-status');
+            disableMicWait();
             statusEl.innerText = "Très bien !";
             statusEl.className = "text-green-600 font-bold text-sm leading-tight text-center mt-2 h-4";
-            
-            // Disable mic during transition
-            disableMicWait();
 
             setTimeout(() => {
-                // Logic for moving to next question
-                let nextTurnId = currentTurnId + 1;
-                
-                // Special Branch Logic at Q3
-                if (currentTurnId === 3) {
-                    if (transcript.includes("요리")) {
-                        nextTurnId = 5; // Go to Q5
-                    } else {
-                        nextTurnId = 4; // Go to Q4
-                    }
-                }
-                
-                playTurn(nextTurnId);
+                playTurn(getNextTurnId(transcript));
+            }, 1500);
 
+        } else if (forcePass) {
+            // 2회 실패: 설명 표시 후 다음 질문으로 강행
+            if(errorSound) errorSound.triggerAttackRelease('C4', '0.15s');
+            let cleanEval = cleanUserText(evaluation);
+            if(!cleanEval) cleanEval = "Veuillez répéter votre réponse.";
+            addFeedbackBubble(turnData.fr, cleanEval);
+
+            const statusEl = document.getElementById('chat-status');
+            disableMicWait();
+            statusEl.innerText = "Bien essayé ! Passez à la suite.";
+            statusEl.className = "text-blue-600 font-bold text-sm leading-tight text-center mt-2 h-4";
+
+            setTimeout(() => {
+                playTurn(getNextTurnId(transcript));
             }, 1500);
 
         } else {
-            // Fail
+            // 1회 실패: API 설명 + Traduction 표시 후, 에이전트가 같은 질문을 다시 하고 유저가 재대답
             if(errorSound) errorSound.triggerAttackRelease('C4', '0.1s');
-            
-            // Clean explanation (remove <Pass> if accidentally there, etc.)
-            let cleanEval = evaluation.replace('<Pass>', '').trim();
+            let cleanEval = cleanUserText(evaluation);
             if(!cleanEval) cleanEval = "Veuillez répéter votre réponse.";
-
             addFeedbackBubble(turnData.fr, cleanEval);
-            
-            // Allow retry
+
+            disableMicWait();
+
+            // 에이전트 재질문: 같은 질문 말풍선 + 오디오 재생 후 마이크 활성화
             setTimeout(() => {
-                enableMic();
-            }, 1000);
+                addSeowonBubble(turnData.text);
+                if (currentAudio) { currentAudio.pause(); }
+                currentAudio = new Audio(turnData.audio);
+                currentAudio.onended = () => {
+                    enableMic();
+                };
+                currentAudio.play().catch(e => {
+                    console.warn("Audio play error", e);
+                    enableMic(); // 자동 재생이 차단된 경우 바로 답변 가능하도록
+                });
+            }, 1500);
         }
+    }
+
+    // 다음 질문 ID 계산 (Q3 분기: 전사값에 '요리' 포함 시 Q5로, 미포함 시 Q4로)
+    function getNextTurnId(transcript) {
+        let nextTurnId = currentTurnId + 1;
+        // Special Branch Logic at Q3
+        if (currentTurnId === 3) {
+            if (transcript.includes("요리")) {
+                nextTurnId = 5; // Go to Q5
+            } else {
+                nextTurnId = 4; // Go to Q4
+            }
+        }
+        return nextTurnId;
+    }
+
+    // 유저 화면 노출 텍스트 정리: <Pass> 마커 및 마크다운 잔여물 제거
+    function cleanUserText(text) {
+        return String(text)
+            .replace(/<\s*pass\s*>/gi, '')
+            .replace(/[*_`~#>]/g, ' ')
+            .replace(/\s{2,}/g, ' ')
+            .trim();
     }
 
 </script>
