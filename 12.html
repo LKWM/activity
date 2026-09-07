@@ -385,13 +385,30 @@
         scrollChatToBottom();
     }
 
-    function addFeedbackBubble(fr_translation, explanation) {
+    function addFeedbackBubble(explanation) {
         const chatBox = document.getElementById('chat-box');
         const bubbleHTML = `
             <div class="flex w-full justify-center bubble-animate my-1">
                 <div class="bg-orange-50 border border-orange-200 text-orange-800 p-3 rounded-xl text-xs sm:text-sm shadow-sm w-[90%] text-left">
-                    <p class="font-bold mb-1 border-b border-orange-200 pb-1">Traduction : ${fr_translation}</p>
                     <p>${explanation}</p>
+                </div>
+            </div>
+        `;
+        chatBox.insertAdjacentHTML('beforeend', bubbleHTML);
+        scrollChatToBottom();
+    }
+
+    // 에이전트 재질문 말풍선: 질문 아래에 Traduction 표시
+    function addSeowonBubbleWithTrad(text, fr) {
+        const chatBox = document.getElementById('chat-box');
+        const bubbleHTML = `
+            <div class="flex w-full justify-start bubble-animate">
+                <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-xs mr-2 shrink-0 border border-indigo-200 mt-1">
+                    서원
+                </div>
+                <div class="bg-white border border-slate-200 text-slate-800 p-3 sm:p-4 rounded-b-2xl rounded-tr-2xl text-sm sm:text-base shadow-sm max-w-[80%] text-left leading-relaxed">
+                    ${text}
+                    <p class="font-bold mt-2 border-t border-slate-100 pt-1 text-xs sm:text-sm text-slate-500">Traduction : ${fr}</p>
                 </div>
             </div>
         `;
@@ -672,33 +689,30 @@
             }, 1500);
 
         } else if (forcePass) {
-            // 2회 실패: 설명 표시 후 다음 질문으로 강행
-            if(errorSound) errorSound.triggerAttackRelease('C4', '0.15s');
+            // 2회 실패: API 설명 표시 후 다음 질문으로 강행
+            if(errorSound) errorSound.triggerAttackRelease('C4', '0.1s');
             let cleanEval = cleanUserText(evaluation);
             if(!cleanEval) cleanEval = "Veuillez répéter votre réponse.";
-            addFeedbackBubble(turnData.fr, cleanEval);
+            addFeedbackBubble(cleanEval);
 
-            const statusEl = document.getElementById('chat-status');
             disableMicWait();
-            statusEl.innerText = "Bien essayé ! Passez à la suite.";
-            statusEl.className = "text-blue-600 font-bold text-sm leading-tight text-center mt-2 h-4";
 
             setTimeout(() => {
                 playTurn(getNextTurnId(transcript));
             }, 1500);
 
         } else {
-            // 1회 실패: API 설명 + Traduction 표시 후, 에이전트가 같은 질문을 다시 하고 유저가 재대답
+            // 1회 실패: 유저 틀린 답 -> API 설명 -> Traduction + 에이전트 재질문 -> 유저 재대답
             if(errorSound) errorSound.triggerAttackRelease('C4', '0.1s');
             let cleanEval = cleanUserText(evaluation);
             if(!cleanEval) cleanEval = "Veuillez répéter votre réponse.";
-            addFeedbackBubble(turnData.fr, cleanEval);
+            addFeedbackBubble(cleanEval);
 
             disableMicWait();
 
-            // 에이전트 재질문: 같은 질문 말풍선 + 오디오 재생 후 마이크 활성화
+            // 에이전트 재질문: 같은 질문 말풍선(Traduction 포함) + 오디오 재생 후 마이크 활성화
             setTimeout(() => {
-                addSeowonBubble(turnData.text);
+                addSeowonBubbleWithTrad(turnData.text, turnData.fr);
                 if (currentAudio) { currentAudio.pause(); }
                 currentAudio = new Audio(turnData.audio);
                 currentAudio.onended = () => {
