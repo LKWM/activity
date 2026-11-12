@@ -410,7 +410,13 @@
 
     // API Constants
     const BASE_44_ORIGIN = "https://coreeno.base44.app";
-    const CLOVA_API_FUNCTION_URL = BASE_44_ORIGIN + '/api/functions/naverClovaSpeech';
+    const GEMINI_API_FUNCTION_URL = BASE_44_ORIGIN + '/api/functions/Geminichat';
+    // 전사 지시문
+    const TRANSCRIBE_INSTRUCTION = `유저의 한국어 발화를 전사한다.
+1. 한글 외에 다른 문자는 사용할 수 없음.
+2. 발화를 하지 않는 구간이나 외국어로 발화하는 구간은 전사하지 않는다.
+3. 의미 없는 filler word나 말더듬기, 공백 등은 삭제하고 실제 단어나 문장만 전사한다.
+4. 문법, 발음 오류는 교정 없이 들리는 대로 전사한다.`;
 
     // Cloze Data (Page 5)
     const clozeData = {
@@ -962,18 +968,21 @@
         let recognizedText = "";
 
         try {
-            const res = await fetch(CLOVA_API_FUNCTION_URL, {
+            const res = await fetch(GEMINI_API_FUNCTION_URL, {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ audioBase64: audioBase64, languageCode: "Kor", referenceText: step.kr })
+                body: JSON.stringify({
+                    model: "gemini-3.8-flash",
+                    systemInstruction: TRANSCRIBE_INSTRUCTION,
+                    contents: [{ role: "user", parts: [{ inline_data: { mime_type: "audio/webm", data: audioBase64 } }] }]
+                })
             });
-            if (!res.ok) throw new Error("API Error");
+            if (!res.ok) throw new Error("API Error: " + res.status);
             const result = await res.json();
-            // Clova 자체 발음 점수 무시, 오직 전사값만 가져옴
-            recognizedText = result.recognized || result.text || "";
+            recognizedText = (result.text || "").trim();
         } catch (e) {
-            console.warn("API Error", e);
+            console.error("Speech API failed", e);
             score = 0;
-            recognizedText = ""; 
+            recognizedText = "";
         }
         
         if (recognizedText && recognizedText !== "???") {

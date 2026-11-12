@@ -982,10 +982,63 @@
     }
 
     /* =========================================
-       Speech Recognition API (Naver Clova)
+       Speech Recognition API (Gemini)
     ========================================= */
     const BASE_44_ORIGIN = "https://coreeno.base44.app"; 
-    const CLOVA_API_FUNCTION_URL = BASE_44_ORIGIN + '/api/functions/naverClovaSpeech';
+    const GEMINI_API_FUNCTION_URL = BASE_44_ORIGIN + '/api/functions/Geminichat';
+    // 전사 지시문
+    const TRANSCRIBE_INSTRUCTION = `유저의 한국어 발화를 전사한다.
+1. 한글 외에 다른 문자는 사용할 수 없음.
+2. 발화를 하지 않는 구간이나 외국어로 발화하는 구간은 전사하지 않는다.
+3. 의미 없는 filler word나 말더듬기, 공백 등은 삭제하고 실제 단어나 문장만 전사한다.
+4. 문법, 발음 오류는 교정 없이 들리는 대로 전사한다.`;
+
+    // 한글 자모 분해 기반 유사도(전사값과 기대 발화값 비교)
+    const CHOSUNG = ['ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','ㅇ','ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
+    const JUNGSUNG = ['ㅏ','ㅐ','ㅑ','ㅒ','ㅓ','ㅔ','ㅕ','ㅖ','ㅗ','ㅘ','ㅙ','ㅚ','ㅛ','ㅜ','ㅝ','ㅞ','ㅟ','ㅠ','ㅡ','ㅢ','ㅣ'];
+    const JONGSUNG = ['','ㄱ','ㄲ','ㄳ','ㄴ','ㄵ','ㄶ','ㄷ','ㄹ','ㄺ','ㄻ','ㄼ','ㄽ','ㄾ','ㄿ','ㅀ','ㅁ','ㅂ','ㅄ','ㅅ','ㅆ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
+
+    function decomposeJamo(str) {
+        const out = [];
+        for (const ch of str) {
+            const code = ch.charCodeAt(0);
+            if (code >= 0xAC00 && code <= 0xD7A3) {
+                const idx = code - 0xAC00;
+                const cho = Math.floor(idx / 588);
+                const jung = Math.floor((idx % 588) / 28);
+                const jong = idx % 28;
+                out.push(CHOSUNG[cho], JUNGSUNG[jung]);
+                if (jong > 0) out.push(JONGSUNG[jong]);
+            } else if (ch.trim() !== '') {
+                out.push(ch);
+            }
+        }
+        return out;
+    }
+
+    function levenshtein(a, b) {
+        let prev = Array.from({ length: b.length + 1 }, (_, i) => i);
+        let curr = new Array(b.length + 1);
+        for (let i = 1; i <= a.length; i++) {
+            curr[0] = i;
+            for (let j = 1; j <= b.length; j++) {
+                const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+                curr[j] = Math.min(prev[j] + 1, curr[j - 1] + 1, prev[j - 1] + cost);
+            }
+            [prev, curr] = [curr, prev];
+        }
+        return prev[b.length];
+    }
+
+    function jamoSimilarity(expected, actual) {
+        const norm = s => (s || '').replace(/[\s.,?!'"“”‘’]/g, '');
+        const e = decomposeJamo(norm(expected));
+        const a = decomposeJamo(norm(actual));
+        if (e.length === 0 && a.length === 0) return 100;
+        if (e.length === 0 || a.length === 0) return 0;
+        const dist = levenshtein(e, a);
+        return Math.round((1 - dist / Math.max(e.length, a.length)) * 100);
+    }
 
     async function toggleRecordSpeech(btn, statusId, referenceText, threshold, maxTries, forcePassOnMax, mustRepeat) {
         const statusEl = document.getElementById(statusId);
@@ -1053,18 +1106,22 @@
         let recognizedText = "";
 
         try {
-            const res = await fetch(CLOVA_API_FUNCTION_URL, {
+            const res = await fetch(GEMINI_API_FUNCTION_URL, {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ audioBase64: audioBase64, languageCode: "Kor", referenceText: referenceText })
+                body: JSON.stringify({
+                    model: "gemini-3.8-flash",
+                    systemInstruction: TRANSCRIBE_INSTRUCTION,
+                    contents: [{ role: "user", parts: [{ inline_data: { mime_type: "audio/webm", data: audioBase64 } }] }]
+                })
             });
-            if (!res.ok) throw new Error("API Error");
+            if (!res.ok) throw new Error("API Error: " + res.status);
             const result = await res.json();
-            score = result.assessment?.pronunciation_score || 0;
-            recognizedText = result.recognized || result.text || "";
+            recognizedText = (result.text || "").trim();
+            score = jamoSimilarity(referenceText, recognizedText);
         } catch (e) {
-            console.warn("API Error, fallback score generation", e);
-            score = Math.floor(Math.random() * 30) + 60;
-            recognizedText = score >= threshold ? referenceText : "???";
+            console.error("Speech API failed", e);
+            recognizedText = "";
+            score = 0;
         }
         
         // 18페이지 발화 퀴즈 다중 정답 조합 로직
@@ -1155,6 +1212,96 @@
         btn.className = `text-white rounded-full ${btn.id.includes('18') ? 'p-6' : 'p-5'} shadow-none mb-2 flex items-center justify-center cursor-not-allowed transition-colors ${success ? 'bg-green-500' : 'bg-slate-400'}`;
         btn.innerHTML = `<i class="ph-bold ph-check ${btn.id.includes('18') ? 'text-4xl' : 'text-3xl'}"></i>`;
     }
+
+
+    /* =========================================
+       오디오 · 마이크 상호 배제 + 따라 말하기 자동재생
+    ========================================= */
+    let audioPlaying = false;
+    let recordingActive = false;
+
+    // 완료 처리된 마이크 버튼은 계속 비활성 유지
+    const __origDisableMicBtn = disableMicBtn;
+    disableMicBtn = function (btn) { if (btn) btn.dataset.done = '1'; return __origDisableMicBtn(btn); };
+    const __origResetMicBtnState = resetMicBtnState;
+    resetMicBtnState = function (btn) { if (btn) btn.dataset.done = ''; return __origResetMicBtnState(btn); };
+
+    function setMicsDisabled(disabled) {
+        document.querySelectorAll('[id^="mic-btn-"]').forEach(btn => {
+            if (btn.dataset.done === '1') return;
+            btn.disabled = disabled;
+            btn.classList.toggle('opacity-50', disabled);
+            btn.classList.toggle('cursor-not-allowed', disabled);
+        });
+    }
+
+    function setAudioCardsDisabled(disabled) {
+        document.querySelectorAll('[onclick^="playCardAudio"]').forEach(el => {
+            el.style.pointerEvents = disabled ? 'none' : '';
+            el.classList.toggle('opacity-50', disabled);
+        });
+    }
+
+    // 녹음 중에는 오디오 재생 금지
+    const __origPlayCardAudio = playCardAudio;
+    playCardAudio = function (url) {
+        if (recordingActive) return;
+        if (currentAudio) { currentAudio.pause(); currentAudio.currentTime = 0; }
+        return __origPlayCardAudio(url);
+    };
+
+    // 페이지 진입 시 따라 말하기 오디오 1회 자동재생
+    function scheduleRepeatAutoplay() {
+        const page = document.getElementById('page-' + currentPage);
+        if (!page) return;
+        const heading = page.querySelector('h2');
+        if (!heading || heading.textContent.trim().indexOf('Répétez après moi') !== 0) return;
+        const card = page.querySelector('[onclick^="playCardAudio"]');
+        if (!card) return;
+        const matched = card.getAttribute('onclick').match(/playCardAudio\('([^']+)'\)/);
+        if (!matched) return;
+        const targetPage = currentPage;
+        audioTimeoutId = setTimeout(() => {
+            if (currentPage === targetPage && !recordingActive) playCardAudio(matched[1]);
+        }, 1000);
+    }
+
+    const __origChangePage = changePage;
+    changePage = function (dir) {
+        __origChangePage(dir);
+        scheduleRepeatAutoplay();
+    };
+
+    // 오디오 재생 상태를 폴링해 마이크 활성 상태를 동기화
+    setInterval(() => {
+        const playing = !!(currentAudio && !currentAudio.paused && !currentAudio.ended);
+        if (playing !== audioPlaying) {
+            audioPlaying = playing;
+            setMicsDisabled(playing);
+        }
+        if (recordingActive && !(activeRecorder && activeRecorder.state === 'recording')) {
+            recordingActive = false;
+            setAudioCardsDisabled(false);
+            setMicsDisabled(false);
+        }
+    }, 250);
+
+    // 녹음 시작/종료 시 오디오 정지 및 오디오 카드 비활성
+    const __origToggleRecordSpeech = toggleRecordSpeech;
+    toggleRecordSpeech = async function (btn, statusId, referenceText, threshold, maxTries, forcePassOnMax, mustRepeat) {
+        const starting = !btn.classList.contains('recording-pulse');
+        if (starting) {
+            if (currentAudio && !currentAudio.paused) { currentAudio.pause(); currentAudio.currentTime = 0; }
+            recordingActive = true;
+            audioPlaying = false;
+            setAudioCardsDisabled(true);
+            setMicsDisabled(false);
+        } else {
+            recordingActive = false;
+            setAudioCardsDisabled(false);
+        }
+        return __origToggleRecordSpeech(btn, statusId, referenceText, threshold, maxTries, forcePassOnMax, mustRepeat);
+    };
 
 </script>
 </body>
